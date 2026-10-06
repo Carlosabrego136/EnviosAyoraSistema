@@ -20,6 +20,7 @@ const securityHeaders = [
       "object-src 'none'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
+      "media-src 'self' https://d8j0ntlcm91z4.cloudfront.net",
       "style-src 'self' 'unsafe-inline'",
       // Next.js necesita scripts inline para la hidratación; en desarrollo también eval.
       `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`,

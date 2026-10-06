@@ -16,6 +16,12 @@ const STATUS_LABEL: Record<Service['status'], string> = {
   paused: 'Pausado',
 };
 
+const STAT_VIDEOS = [
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_143605_bc7bd6c0-9c68-49ff-a9d3-073a10759fa4.mp4',
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_145119_f4ec4d9f-3ecd-4116-baa3-26e8cf2df976.mp4',
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_140728_ae719193-f10b-4105-82fc-c989610b3aa6.mp4',
+];
+
 const COMMUNITY_POINTS: { icon: 'megaphone' | 'calendar' | 'pulse' | 'whatsapp'; title: string; text: string }[] = [
   { icon: 'megaphone', title: 'Avisos oficiales', text: 'Comunicados claros sobre cambios, temporadas y novedades de operación.' },
   { icon: 'calendar', title: 'Calendario de recolecciones', text: 'Días y horarios publicados con anticipación para que planees tus envíos.' },
@@ -71,16 +77,30 @@ export default async function HomePage() {
       {/* ── Indicadores ───────────────────────────────────── */}
       {c.stats.length > 0 && (
         <section className="container stats-wrap" aria-label="Indicadores">
-          <Reveal className="stats">
-            {c.stats.map((st) => (
-              <div key={st.id} className="stat">
-                <span className="stat__label">{st.label}</span>
-                <span className="stat__value">{st.value}</span>
-                <span className="stat__rule" aria-hidden="true" />
-                {st.caption && <span className="stat__caption">{st.caption}</span>}
-              </div>
+          <div className="stats">
+            {c.stats.map((st, i) => (
+              <Reveal key={st.id} delay={i * 200} className="stat">
+                <video
+                  className="stat__video"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                >
+                  <source src={STAT_VIDEOS[i % STAT_VIDEOS.length]} type="video/mp4" />
+                </video>
+                <span className={`stat__tint stat__tint--${i % 3}`} aria-hidden="true" />
+                <div className="stat__body">
+                  <span className="stat__value">{st.value}</span>
+                  <span className="stat__label">{st.label}</span>
+                  {st.caption && <span className="stat__caption">{st.caption}</span>}
+                </div>
+              </Reveal>
             ))}
-          </Reveal>
+          </div>
         </section>
       )}
 
