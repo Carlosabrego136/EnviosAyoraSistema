@@ -1,0 +1,270 @@
+import Image from 'next/image';
+import Link from 'next/link';
+import { HeroCarousel } from '@/components/HeroCarousel';
+import { Icon, serviceIcon } from '@/components/Icon';
+import { LeadForm } from '@/components/LeadForm';
+import { Reveal } from '@/components/Reveal';
+import { getSiteContent, type Service } from '@/lib/content';
+import { dateParts, daysBetween, formatTime, relativeDays } from '@/lib/format';
+import { whatsappLink } from '@/lib/settings';
+
+export const revalidate = 60;
+
+const STATUS_LABEL: Record<Service['status'], string> = {
+  active: 'Activo',
+  limited: 'Limitado',
+  paused: 'Pausado',
+};
+
+const COMMUNITY_POINTS: { icon: 'megaphone' | 'calendar' | 'pulse' | 'whatsapp'; title: string; text: string }[] = [
+  { icon: 'megaphone', title: 'Avisos oficiales', text: 'Comunicados claros sobre cambios, temporadas y novedades de operación.' },
+  { icon: 'calendar', title: 'Calendario de recolecciones', text: 'Días y horarios publicados con anticipación para que planees tus envíos.' },
+  { icon: 'pulse', title: 'Estado de cada servicio', text: 'Consulta qué servicios están activos y sus tiempos estimados de entrega.' },
+  { icon: 'whatsapp', title: 'Atención directa', text: 'Habla con una persona del equipo por WhatsApp cuando lo necesites.' },
+];
+
+export default async function HomePage() {
+  const c = await getSiteContent();
+  const { settings: s } = c;
+  const wa = whatsappLink(s);
+
+  const activeCount = c.services.filter((x) => x.status === 'active').length;
+  const latest = c.announcements.slice(0, 3);
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: s.brand_name,
+    alternateName: s.brand_legal || undefined,
+    description: `${s.brand_name} ${s.brand_tagline}`,
+    url: process.env.NEXT_PUBLIC_SITE_URL || undefined,
+    logo: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')}/logo.png` : undefined,
+    telephone: s.whatsapp_number ? `+${s.whatsapp_number.replace(/\D/g, '')}` : undefined,
+    email: s.contact_email || undefined,
+    areaServed: { '@type': 'Country', name: 'México' },
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+
+      {/* ── Portada ───────────────────────────────────────── */}
+      <section className="hero" aria-labelledby="hero-title">
+        <div className="hero__bg" aria-hidden="true">
+          <span className="hero__glow hero__glow--a" />
+          <span className="hero__glow hero__glow--b" />
+          <span className="hero__grid" />
+          {Array.from({ length: 14 }, (_, i) => (
+            <span key={i} className="ember" style={{ ['--i' as string]: i }} />
+          ))}
+        </div>
+        <div className="container hero__inner">
+          <div className="hero__copy" id="hero-title">
+            <HeroCarousel slides={c.slides} whatsappHref={wa} />
+          </div>
+          <div className="hero__art" aria-hidden="true">
+            <Image src="/logo.png" alt="" width={878} height={467} priority sizes="(max-width: 900px) 80vw, 520px" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Indicadores ───────────────────────────────────── */}
+      {c.stats.length > 0 && (
+        <section className="container stats-wrap" aria-label="Indicadores">
+          <Reveal className="stats">
+            {c.stats.map((st) => (
+              <div key={st.id} className="stat">
+                <span className="stat__label">{st.label}</span>
+                <span className="stat__value">{st.value}</span>
+                <span className="stat__rule" aria-hidden="true" />
+                {st.caption && <span className="stat__caption">{st.caption}</span>}
+              </div>
+            ))}
+          </Reveal>
+        </section>
+      )}
+
+      {/* ── Servicios ─────────────────────────────────────── */}
+      <section id="servicios" className="section container">
+        <Reveal className="section__head">
+          <span className="ornament"><i /> <b>Servicios que conectan a México</b> <i /></span>
+          <h2 className="section__title">Elige cómo viaja tu mercancía</h2>
+        </Reveal>
+        <div className="grid grid--services">
+          {c.services.map((sv, i) => (
+            <Reveal key={sv.id} delay={i * 70} className="card service">
+              <span className="service__icon"><Icon name={serviceIcon(sv.icon)} size={26} /></span>
+              <h3>{sv.name}</h3>
+              {sv.description && <p>{sv.description}</p>}
+              <div className="service__meta">
+                {sv.eta_text && (
+                  <span className="pill"><Icon name="clock" size={14} /> {sv.eta_text}</span>
+                )}
+                <span className={`pill pill--${sv.status}`}>
+                  <span className="pill__dot" /> {STATUS_LABEL[sv.status]}
+                </span>
+              </div>
+              {sv.status_note && <p className="service__note">{sv.status_note}</p>}
+              <a
+                className="link-arrow"
+                href={whatsappLink(s, `Hola ${s.brand_name}, quiero cotizar un envío por ${sv.name.toLowerCase()}.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Cotizar este servicio <Icon name="arrow" size={15} />
+              </a>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Estado operativo + recolecciones ──────────────── */}
+      <section id="estado" className="section container">
+        <div className="grid grid--duo">
+          <Reveal className="card panel">
+            <p className="eyebrow"><span className="eyebrow__gem" aria-hidden="true" />En tiempo real</p>
+            <div className="panel__head">
+              <h2>Estado operativo</h2>
+            </div>
+            <div className="op-summary">
+              <span className="op-summary__num">{activeCount}<small>/{c.services.length}</small></span>
+              <span className="op-summary__label">Servicios activos</span>
+            </div>
+            <div className="op-bars" aria-hidden="true">
+              {c.services.map((sv) => (
+                <span key={sv.id} className={`op-bar op-bar--${sv.status}`} />
+              ))}
+            </div>
+            <ul className="op-list">
+              {c.services.map((sv) => (
+                <li key={sv.id}>
+                  <div>
+                    <strong>{sv.name}</strong>
+                    <span>{sv.status_note || sv.eta_text}</span>
+                  </div>
+                  <span className={`pill pill--${sv.status}`}>
+                    <span className="pill__dot" /> {STATUS_LABEL[sv.status]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="panel__foot">Tiempos estimados en días hábiles.</p>
+          </Reveal>
+
+          <Reveal className="card panel" delay={90}>
+            <p className="eyebrow"><span className="eyebrow__gem" aria-hidden="true" />Calendario</p>
+            <div className="panel__head">
+              <h2>Próximas recolecciones</h2>
+              <a
+                className="link-arrow"
+                href={whatsappLink(s, `Hola ${s.brand_name}, quiero agendar una recolección.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Agendar <Icon name="arrow" size={15} />
+              </a>
+            </div>
+            {c.pickups.length === 0 ? (
+              <p className="empty">Pronto publicaremos las próximas fechas. Escríbenos por WhatsApp para coordinar tu recolección.</p>
+            ) : (
+              <ul className="tickets">
+                {c.pickups.map((p) => {
+                  const d = dateParts(p.pickup_date);
+                  const diff = daysBetween(c.today, p.pickup_date);
+                  return (
+                    <li key={p.id} className="ticket">
+                      <div className="ticket__date">
+                        <span className="ticket__month">{d.month}</span>
+                        <span className="ticket__day">{d.day}</span>
+                        <span className="ticket__weekday">{d.weekday}</span>
+                      </div>
+                      <div className="ticket__info">
+                        <span className="pill pill--soft">{relativeDays(diff)}</span>
+                        <strong>{formatTime(p.start_time)} – {formatTime(p.end_time)}</strong>
+                        <span>{p.note}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {s.address && (
+              <p className="panel__foot panel__foot--addr"><Icon name="pin" size={15} /> {s.address}</p>
+            )}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── Comunicados ───────────────────────────────────── */}
+      <section id="comunicados" className="section container">
+        <Reveal className="card panel panel--wide">
+          <p className="eyebrow"><span className="eyebrow__gem" aria-hidden="true" />Avisos oficiales</p>
+          <div className="panel__head">
+            <h2>Comunicados</h2>
+            <Link className="link-arrow" href="/comunicados">Ver todos <Icon name="arrow" size={15} /></Link>
+          </div>
+          {latest.length === 0 ? (
+            <p className="empty">Aún no hay comunicados publicados.</p>
+          ) : (
+            <ul className="news">
+              {latest.map((a, i) => {
+                const d = dateParts(a.published_on);
+                return (
+                  <li key={a.id} className="news__item">
+                    <div className="datebox" aria-hidden="true">
+                      <strong>{d.day}</strong>
+                      <span>{d.month}</span>
+                      <small>{d.year}</small>
+                    </div>
+                    <div className="news__body">
+                      <div className="news__tags">
+                        <span className="pill pill--outline">{a.category}</span>
+                        {i === 0 && <span className="news__latest">Más reciente</span>}
+                      </div>
+                      <h3>{a.title}</h3>
+                      <p>{a.body.length > 190 ? `${a.body.slice(0, 190).trimEnd()}…` : a.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="panel__foot">
+            ¿Dudas sobre un comunicado?{' '}
+            <a href={whatsappLink(s)} target="_blank" rel="noopener noreferrer">Escríbenos</a>
+          </p>
+        </Reveal>
+      </section>
+
+      {/* ── Comunidad + formulario ────────────────────────── */}
+      <section id="comunidad" className="section container">
+        <div className="community">
+          <Reveal className="community__copy">
+            <p className="eyebrow"><span className="eyebrow__gem" aria-hidden="true" />{s.community_eyebrow}</p>
+            <h2 className="section__title section__title--left">{s.community_title}</h2>
+            <p className="lead">{s.community_text}</p>
+            <ul className="points">
+              {COMMUNITY_POINTS.map((pt) => (
+                <li key={pt.title}>
+                  <span className="points__icon"><Icon name={pt.icon} size={20} /></span>
+                  <div>
+                    <strong>{pt.title}</strong>
+                    <span>{pt.text}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+          <Reveal className="card form-card" delay={100}>
+            <h3>Únete a la comunidad</h3>
+            <p className="form-card__sub">Déjanos tus datos y te contactamos. También puedes escribirnos directo.</p>
+            <LeadForm whatsappHref={wa} />
+            <a className="btn btn--wa btn--block form-card__wa" href={wa} target="_blank" rel="noopener noreferrer">
+              <Icon name="whatsapp" size={18} /> Hablar por WhatsApp
+            </a>
+          </Reveal>
+        </div>
+      </section>
+    </>
+  );
+}

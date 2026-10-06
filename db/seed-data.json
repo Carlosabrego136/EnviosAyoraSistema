@@ -1,0 +1,84 @@
+{
+  "slides": [
+    {
+      "eyebrow": "Recolección y envíos",
+      "title": "Tu mercancía llega. Siempre.",
+      "subtitle": "Del punto de recolección a todo México",
+      "body": "Coordinamos envíos aéreos, terrestres y paquetería nacional con procesos claros y un equipo que da la cara.",
+      "cta_label": "Ver servicios",
+      "cta_href": "#servicios",
+      "sort_order": 1
+    },
+    {
+      "eyebrow": "Cobertura nacional",
+      "title": "Enviamos a todo México",
+      "subtitle": "32 entidades federativas",
+      "body": "Elige la modalidad que mejor se adapta a tu mercancía, a tu tiempo y a tu presupuesto.",
+      "cta_label": "Cotizar por WhatsApp",
+      "cta_href": "whatsapp",
+      "sort_order": 2
+    },
+    {
+      "eyebrow": "Comunidad Fénix",
+      "title": "Más que envíos, un equipo que responde",
+      "subtitle": "Atención directa y comunicación real",
+      "body": "Regístrate como comerciante y recibe avisos oficiales, calendario de recolecciones y estado de cada servicio.",
+      "cta_label": "Unirme a la comunidad",
+      "cta_href": "#comunidad",
+      "sort_order": 3
+    }
+  ],
+  "stats": [
+    { "value": "32", "label": "Entidades con cobertura", "caption": "Envíos a todo México", "sort_order": 1 },
+    { "value": "2", "label": "Días de recolección", "caption": "Cada semana, con horario fijo", "sort_order": 2 },
+    { "value": "4", "label": "Servicios activos", "caption": "Aéreo, terrestre y más", "sort_order": 3 }
+  ],
+  "services": [
+    {
+      "name": "Envíos aéreos",
+      "description": "El menor tiempo de entrega, ideal para mercancía urgente.",
+      "eta_text": "1 a 3 días hábiles",
+      "icon": "plane",
+      "status": "active",
+      "sort_order": 1
+    },
+    {
+      "name": "Envíos terrestres",
+      "description": "La alternativa más económica para la mayoría de los envíos.",
+      "eta_text": "4 a 8 días hábiles",
+      "icon": "truck",
+      "status": "active",
+      "sort_order": 2
+    },
+    {
+      "name": "Paquetería nacional",
+      "description": "Cobertura en las 32 entidades federativas con guía de seguimiento.",
+      "eta_text": "3 a 6 días hábiles",
+      "icon": "box",
+      "status": "active",
+      "sort_order": 3
+    },
+    {
+      "name": "Servicio postal",
+      "description": "Opción de bajo costo para paquetes ligeros a cualquier destino.",
+      "eta_text": "5 a 10 días hábiles",
+      "icon": "mail",
+      "status": "active",
+      "sort_order": 4
+    }
+  ],
+  "announcements": [
+    {
+      "category": "Bienvenida",
+      "title": "Estrenamos sitio oficial",
+      "body": "Aquí publicaremos los avisos oficiales, el calendario de recolecciones y el estado de cada servicio. Mantente al tanto.",
+      "days_ago": 0
+    },
+    {
+      "category": "Operaciones",
+      "title": "Recolección con horario fijo",
+      "body": "Las recolecciones se realizan en nuestras instalaciones en los días y horarios publicados en el calendario. Llega con tu mercancía lista y etiquetada.",
+      "days_ago": 6
+    }
+  ]
+}
