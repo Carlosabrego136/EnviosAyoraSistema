@@ -16,6 +16,9 @@ const STATUS_LABEL: Record<Service['status'], string> = {
   paused: 'Pausado',
 };
 
+const HERO_VIDEO =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_064251_c78c4e3f-1d2f-485e-9ca4-56976efd496f.mp4';
+
 const SERVICES_VIDEO =
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261003_062910_04059e54-1a17-4d55-b1e3-028adec90dff.mp4';
 
@@ -68,9 +71,9 @@ export default async function HomePage() {
       {/* ── Portada ───────────────────────────────────────── */}
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero__bg" aria-hidden="true">
-          <span className="hero__glow hero__glow--a" />
-          <span className="hero__glow hero__glow--b" />
-          <span className="hero__grid" />
+          <video className="hero__video" autoPlay loop muted playsInline preload="auto" tabIndex={-1}>
+            <source src={HERO_VIDEO} type="video/mp4" />
+          </video>
           {Array.from({ length: 14 }, (_, i) => (
             <span key={i} className="ember" style={{ ['--i' as string]: i }} />
           ))}
