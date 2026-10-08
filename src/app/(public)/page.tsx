@@ -170,7 +170,8 @@ export default async function HomePage() {
       </section>
 
       {/* ── Estado operativo + recolecciones ──────────────── */}
-      <section id="estado" className="section container">
+      <section id="estado" className="estado-band">
+        <div className="container">
         <div className="grid grid--duo">
           <Reveal className="card panel">
             <p className="eyebrow"><span className="eyebrow__gem" aria-hidden="true" />En tiempo real</p>
@@ -243,6 +244,7 @@ export default async function HomePage() {
               <p className="panel__foot panel__foot--addr"><Icon name="pin" size={15} /> {s.address}</p>
             )}
           </Reveal>
+        </div>
         </div>
       </section>
 

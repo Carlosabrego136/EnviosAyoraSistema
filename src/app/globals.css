@@ -978,6 +978,33 @@ html.js .stat.reveal.is-in {
   background: transparent;
 }
 
+/* ── Estado operativo + recolecciones: banda gris metálico con tarjetas gris muy oscuro ── */
+.estado-band {
+  /* Colores locales: todo lo que está dentro usa gris neutro en lugar del azul noche */
+  --bg: #121316;
+  --card: rgba(22, 23, 27, 0.97);
+  --line: rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --muted: #aeb2ba;
+  --faint: #8a8e97;
+  position: relative;
+  padding-block: clamp(56px, 8vw, 96px);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px),
+    radial-gradient(110% 80% at 12% 0%, rgba(255, 255, 255, 0.34), transparent 58%),
+    radial-gradient(90% 70% at 92% 100%, rgba(255, 255, 255, 0.2), transparent 62%),
+    linear-gradient(135deg, #6b6f78 0%, #9a9ea6 24%, #767a83 50%, #a3a7ae 74%, #5d616a 100%);
+}
+.estado-band .card {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 26px 60px -26px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.estado-band .card::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
 /* ── Paneles ───────────────────────────────────────────────── */
 .panel {
   padding: 28px;
