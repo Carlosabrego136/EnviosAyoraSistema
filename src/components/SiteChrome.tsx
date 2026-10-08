@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { whatsappLink, safeTimezone, type SettingsMap } from '@/lib/settings';
+import { whatsappLink, type SettingsMap } from '@/lib/settings';
 import { Icon } from './Icon';
 import { LiveClock } from './LiveClock';
 import { MobileNav, type NavLink } from './MobileNav';
@@ -40,7 +40,7 @@ export function SiteHeader({ settings }: { settings: SettingsMap }) {
           ))}
         </nav>
         <div className="site-header__right">
-          <LiveClock timeZone={safeTimezone(settings.timezone)} />
+          <LiveClock />
           <a className="btn btn--wa btn--sm site-header__wa" href={wa} target="_blank" rel="noopener noreferrer">
             <Icon name="whatsapp" size={16} /> WhatsApp
           </a>

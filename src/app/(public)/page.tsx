@@ -16,6 +16,17 @@ const STATUS_LABEL: Record<Service['status'], string> = {
   paused: 'Pausado',
 };
 
+const SERVICES_VIDEO =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261003_062910_04059e54-1a17-4d55-b1e3-028adec90dff.mp4';
+
+/** Logo ilustrado por tipo de servicio (campo "icon"). Si el servicio usa otro ícono, se muestra el ícono de línea. */
+const SERVICE_IMAGES: Record<string, string> = {
+  plane: '/services/aereo.webp',
+  truck: '/services/terrestre.webp',
+  box: '/services/nacional.webp',
+  mail: '/services/postal.webp',
+};
+
 const STAT_VIDEOS = [
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_143605_bc7bd6c0-9c68-49ff-a9d3-073a10759fa4.mp4',
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_145119_f4ec4d9f-3ecd-4116-baa3-26e8cf2df976.mp4',
@@ -105,15 +116,34 @@ export default async function HomePage() {
       )}
 
       {/* ── Servicios ─────────────────────────────────────── */}
-      <section id="servicios" className="section container">
+      <section id="servicios" className="services-band" aria-labelledby="servicios-title">
+        <video
+          className="services-band__video"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <source src={SERVICES_VIDEO} type="video/mp4" />
+        </video>
+        <div className="container services-band__inner">
         <Reveal className="section__head">
           <span className="ornament"><i /> <b>Servicios que conectan a México</b> <i /></span>
-          <h2 className="section__title">Elige cómo viaja tu mercancía</h2>
+          <h2 id="servicios-title" className="section__title">Elige cómo viaja tu mercancía</h2>
         </Reveal>
         <div className="grid grid--services">
           {c.services.map((sv, i) => (
             <Reveal key={sv.id} delay={i * 70} className="card service">
-              <span className="service__icon"><Icon name={serviceIcon(sv.icon)} size={26} /></span>
+              {SERVICE_IMAGES[sv.icon] ? (
+                <span className="service__media">
+                  <Image src={SERVICE_IMAGES[sv.icon]} alt="" width={112} height={112} sizes="112px" />
+                </span>
+              ) : (
+                <span className="service__icon"><Icon name={serviceIcon(sv.icon)} size={26} /></span>
+              )}
               <h3>{sv.name}</h3>
               {sv.description && <p>{sv.description}</p>}
               <div className="service__meta">
@@ -135,6 +165,7 @@ export default async function HomePage() {
               </a>
             </Reveal>
           ))}
+        </div>
         </div>
       </section>
 
