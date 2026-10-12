@@ -1505,3 +1505,45 @@ html.js .lx-chamfer.lx-rise:not(.is-in):hover {
 html.js .lx-chamfer.lx-rise.is-in:hover {
   transform: translateY(-2px);
 }
+
+/* ── Logo en panel blanco biselado (siempre legible sobre el video) ── */
+.lx-brand {
+  gap: 14px;
+  padding: 10px 22px 10px 16px;
+  background: #fff;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.lx-brand__emblem {
+  height: 52px;
+  filter: brightness(0.72) contrast(1.1);
+}
+.lx-brand__name {
+  font-size: 18px;
+  font-weight: 600;
+}
+.lx-brand__tag {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--steel);
+  opacity: 1;
+}
+@media (min-width: 640px) {
+  .lx-brand {
+    padding: 12px 28px 12px 20px;
+  }
+  .lx-brand__emblem {
+    height: 68px;
+  }
+  .lx-brand__name {
+    font-size: 22px;
+  }
+  .lx-brand__tag {
+    font-size: 13px;
+  }
+}
+/* Entre 900 y 1199 px solo el emblema, para no chocar con la barra de menú */
+@media (min-width: 900px) and (max-width: 1199px) {
+  .lx-brand__text {
+    display: none;
+  }
+}

@@ -9,7 +9,7 @@ export function LxTopBar({ settings }: { settings: SettingsMap }) {
   return (
     <div className="lx-top">
       <Link href="/" className="lx-brand" aria-label={`${settings.brand_name} — inicio`}>
-        <Image src="/emblem.png" alt="" width={351} height={452} sizes="40px" className="lx-brand__emblem" priority />
+        <Image src="/emblem.png" alt="" width={351} height={452} sizes="72px" className="lx-brand__emblem" priority />
         <span className="lx-brand__text">
           <span className="lx-brand__name">{settings.brand_name}</span>
           <span className="lx-brand__tag">{settings.brand_tagline}</span>
