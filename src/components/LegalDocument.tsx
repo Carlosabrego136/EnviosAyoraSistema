@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react';
+import type { SettingsMap } from '@/lib/settings';
+import { LxTopBar } from './LxTopBar';
+import { Motion } from './Motion';
 
 interface Block {
   heading?: string;
@@ -21,26 +24,47 @@ export function parseLegal(text: string): Block[] {
     });
 }
 
-export function LegalDocument({ title, updated, text, footer }: { title: string; updated?: string; text: string; footer?: ReactNode }) {
+export function LegalDocument({
+  title,
+  updated,
+  text,
+  footer,
+  settings,
+}: {
+  title: string;
+  updated?: string;
+  text: string;
+  footer?: ReactNode;
+  settings: SettingsMap;
+}) {
   const blocks = parseLegal(text);
   return (
-    <section className="page container legal">
-      <header className="page__head">
-        <p className="eyebrow"><span className="eyebrow__gem" aria-hidden="true" />Información legal</p>
-        <h1 className="section__title section__title--left">{title}</h1>
-        {updated && <p className="legal__updated">{updated}</p>}
-      </header>
-      <div className="card legal__body">
-        {blocks.map((b, i) => (
-          <div key={i}>
-            {b.heading && <h2>{b.heading}</h2>}
-            {b.paragraphs.map((p, j) => (
-              <p key={j}>{p}</p>
-            ))}
-          </div>
-        ))}
-        {footer}
+    <>
+      <div className="lx-subhero">
+        <LxTopBar settings={settings} />
       </div>
-    </section>
+      <section className="lx-page">
+        <div className="lx-page__inner">
+          <Motion kind="blur" className="lx-head">
+            <p className="lx-head__tag">[información legal]</p>
+            <h1 className="lx-head__title">{title}</h1>
+            {updated && <p className="lx-legal__updated">{updated}</p>}
+          </Motion>
+          <Motion className="lx-chamfer" style={{ ['--c' as string]: '20px' }}>
+            <div className="lx-chamfer__in lx-legal">
+              {blocks.map((b, i) => (
+                <div key={i}>
+                  {b.heading && <h2>{b.heading}</h2>}
+                  {b.paragraphs.map((p, j) => (
+                    <p key={j}>{p}</p>
+                  ))}
+                </div>
+              ))}
+              {footer}
+            </div>
+          </Motion>
+        </div>
+      </section>
+    </>
   );
 }

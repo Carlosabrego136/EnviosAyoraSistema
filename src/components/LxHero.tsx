@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
 
-export interface HeroSlide {
+export interface LxSlide {
   id: number;
   eyebrow: string;
   title: string;
@@ -15,37 +15,38 @@ export interface HeroSlide {
 
 const INTERVAL_MS = 7000;
 
-export function HeroCarousel({ slides, whatsappHref }: { slides: HeroSlide[]; whatsappHref: string }) {
+/** Carrusel de portada: textos centrados con entrada de desenfoque, editable desde el panel. */
+export function LxHero({ slides, whatsappHref }: { slides: LxSlide[]; whatsappHref: string }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const [reduce, setReduce] = useState(false);
   const timer = useRef<number | null>(null);
   const count = slides.length;
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduceMotion(mq.matches);
-    const onChange = () => setReduceMotion(mq.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    setReduce(mq.matches);
+    const on = () => setReduce(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
   }, []);
 
-  const go = useCallback((next: number) => setIndex(((next % count) + count) % count), [count]);
+  const go = useCallback((n: number) => setIndex(((n % count) + count) % count), [count]);
 
   useEffect(() => {
-    if (count < 2 || paused || reduceMotion) return;
+    if (count < 2 || paused || reduce) return;
     timer.current = window.setTimeout(() => go(index + 1), INTERVAL_MS);
     return () => {
       if (timer.current) window.clearTimeout(timer.current);
     };
-  }, [index, paused, reduceMotion, count, go]);
+  }, [index, paused, reduce, count, go]);
 
   if (count === 0) return null;
-  const running = !paused && !reduceMotion && count > 1;
+  const running = !paused && !reduce && count > 1;
 
   return (
     <div
-      className="carousel"
+      className="lx-hero__carousel"
       role="region"
       aria-roledescription="carrusel"
       aria-label="Mensajes principales"
@@ -54,7 +55,7 @@ export function HeroCarousel({ slides, whatsappHref }: { slides: HeroSlide[]; wh
         if (e.key === 'ArrowLeft') go(index - 1);
       }}
     >
-      <div className="carousel__stage" aria-live={running ? 'off' : 'polite'}>
+      <div className="lx-hero__stage" aria-live={running ? 'off' : 'polite'}>
         {slides.map((slide, i) => {
           const href = slide.cta_href === 'whatsapp' ? whatsappHref : slide.cta_href;
           const external = href.startsWith('http');
@@ -62,29 +63,24 @@ export function HeroCarousel({ slides, whatsappHref }: { slides: HeroSlide[]; wh
           return (
             <article
               key={slide.id}
-              className={`slide ${active ? 'is-active' : ''}`}
+              className={`lx-slide ${active ? 'is-active' : ''}`}
               aria-hidden={!active}
               aria-roledescription="diapositiva"
               aria-label={`${i + 1} de ${count}`}
             >
-              {slide.eyebrow && (
-                <p className="eyebrow">
-                  <span className="eyebrow__gem" aria-hidden="true" />
-                  {slide.eyebrow}
-                </p>
-              )}
-              <h1 className="slide__title">{slide.title}</h1>
-              {slide.subtitle && <p className="slide__subtitle">{slide.subtitle}</p>}
-              {slide.body && <p className="slide__body">{slide.body}</p>}
+              {slide.eyebrow && <p className="lx-eyebrow">{slide.eyebrow}</p>}
+              <h1 className="lx-hero__title">{slide.title}</h1>
+              {slide.subtitle && <p className="lx-hero__sub">{slide.subtitle}</p>}
+              {slide.body && <p className="lx-hero__body">{slide.body}</p>}
               {slide.cta_label && href && (
                 <a
-                  className="btn btn--ghost"
+                  className="lx-cta lx-cta--dark"
                   href={href}
                   tabIndex={active ? 0 : -1}
                   {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
                   {slide.cta_label}
-                  <Icon name="arrow" size={16} />
+                  <Icon name="arrow" size={14} />
                 </a>
               )}
             </article>
@@ -93,40 +89,35 @@ export function HeroCarousel({ slides, whatsappHref }: { slides: HeroSlide[]; wh
       </div>
 
       {count > 1 && (
-        <div className="carousel__controls">
-          <div className="carousel__dots" role="group" aria-label="Elegir diapositiva">
+        <div className="lx-hero__controls">
+          <div className="lx-dots" role="group" aria-label="Elegir diapositiva">
             {slides.map((s, i) => (
               <button
                 key={s.id}
                 type="button"
-                className={`dot ${i === index ? 'is-active' : ''}`}
+                className={i === index ? 'is-active' : ''}
                 aria-label={`Ir a la diapositiva ${i + 1}`}
                 aria-current={i === index}
                 onClick={() => go(i)}
-              />
+              >
+                {i === index && (
+                  <span
+                    key={`${index}-${running}`}
+                    className={running ? 'is-running' : ''}
+                    style={{ animationDuration: `${INTERVAL_MS}ms` }}
+                  />
+                )}
+              </button>
             ))}
           </div>
-          <span className="carousel__count" aria-hidden="true">
-            {String(index + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
-          </span>
           <button
             type="button"
-            className="icon-btn"
+            className="lx-icon-btn"
             aria-label={paused ? 'Reanudar carrusel' : 'Pausar carrusel'}
             onClick={() => setPaused((p) => !p)}
           >
-            <Icon name={paused ? 'play' : 'pause'} size={16} />
+            <Icon name={paused ? 'play' : 'pause'} size={14} />
           </button>
-        </div>
-      )}
-
-      {count > 1 && (
-        <div className="carousel__progress" aria-hidden="true">
-          <span
-            key={`${index}-${running}`}
-            className={running ? 'is-running' : ''}
-            style={{ animationDuration: `${INTERVAL_MS}ms` }}
-          />
         </div>
       )}
     </div>

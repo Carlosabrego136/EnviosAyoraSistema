@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: 'Términos y condiciones' };
 
 export default async function TermsPage() {
   const s = await loadSettings();
-  return <LegalDocument title="Términos y condiciones" text={s.terms_text} />;
+  return <LegalDocument settings={s} title="Términos y condiciones" text={s.terms_text} />;
 }

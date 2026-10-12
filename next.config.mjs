@@ -18,7 +18,7 @@ const securityHeaders = [
       "form-action 'self'",
       "frame-ancestors 'none'",
       "object-src 'none'",
-      "img-src 'self' data: blob:",
+      "img-src 'self' data: blob: https://images.higgs.ai https://d8j0ntlcm91z4.cloudfront.net",
       "font-src 'self' data:",
       "media-src 'self' https://d8j0ntlcm91z4.cloudfront.net",
       "style-src 'self' 'unsafe-inline'",

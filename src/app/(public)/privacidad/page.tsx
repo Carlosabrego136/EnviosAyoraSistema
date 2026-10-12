@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: 'Aviso de privacidad' };
 
 export default async function PrivacyPage() {
   const s = await loadSettings();
-  return <LegalDocument title="Aviso de privacidad" text={s.privacy_text} />;
+  return <LegalDocument settings={s} title="Aviso de privacidad" text={s.privacy_text} />;
 }

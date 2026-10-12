@@ -1,18 +1,27 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
-/** Aparece suavemente al entrar en pantalla. Sin JavaScript o con "reducir movimiento" se muestra de inmediato. */
-export function Reveal({
+/**
+ * Animaciones de entrada del diseño:
+ *  - blur: desenfoque 20px + transparencia → nítido (1.2 s)
+ *  - rise: sube 30px + aparece (0.6 s), con retraso escalonado
+ * Se activan una sola vez al entrar en pantalla. Sin JavaScript o con "reducir movimiento" se muestran de inmediato.
+ */
+export function Motion({
   children,
+  kind = 'rise',
   delay = 0,
   className = '',
   as: Tag = 'div',
+  style,
 }: {
   children: ReactNode;
+  kind?: 'blur' | 'rise';
   delay?: number;
   className?: string;
-  as?: 'div' | 'section' | 'li' | 'article';
+  as?: 'div' | 'section' | 'li' | 'article' | 'h1' | 'h2' | 'h3' | 'p' | 'span';
+  style?: CSSProperties;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [shown, setShown] = useState(false);
@@ -32,7 +41,7 @@ export function Reveal({
           io.disconnect();
         }
       },
-      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+      { threshold: 0.2 },
     );
     io.observe(node);
     return () => io.disconnect();
@@ -41,8 +50,8 @@ export function Reveal({
   return (
     <Tag
       ref={ref as never}
-      className={`reveal ${shown ? 'is-in' : ''} ${className}`.trim()}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      className={`lx-${kind} ${shown ? 'is-in' : ''} ${className}`.trim()}
+      style={{ ...(delay ? ({ '--d': `${delay}ms` } as CSSProperties) : null), ...style }}
     >
       {children}
     </Tag>
