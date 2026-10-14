@@ -901,9 +901,10 @@ html.js .lx-chamfer.lx-rise:not(.is-in):hover {
 .lx-stat__img {
   width: 100%;
   height: 100%;
-  background-color: #b9bcc2;
+  background-color: #fff;
   background-size: cover;
-  background-position: center;
+  background-position: right top;
+  background-repeat: no-repeat;
   mix-blend-mode: plus-darker;
 }
 .lx-stat__text {
@@ -1546,4 +1547,8 @@ html.js .lx-chamfer.lx-rise.is-in:hover {
   .lx-brand__text {
     display: none;
   }
+}
+
+.lx-stat__text--b {
+  max-width: 54%;
 }

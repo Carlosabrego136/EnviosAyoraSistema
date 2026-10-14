@@ -21,23 +21,20 @@ const CDN = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA
 const HERO_VIDEO = `${CDN}hf_20260511_151648_2bdfbd1c-6bde-4f5d-a967-f57cbced97f6.mp4`;
 const SERVICES_VIDEO = `${CDN}hf_20260514_154120_b89bfedd-530d-4ebb-9eb7-42eeafe08667.mp4`;
 
-const statImage = (file: string) =>
-  `https://images.higgs.ai/?default=1&output=webp&url=${encodeURIComponent(`${CDN}${file}`)}&w=1280&q=85`;
-
 /** Fondos y recortes biselados de las tres tarjetas de indicadores. */
 const STAT_STYLES = [
   {
-    image: statImage('hf_20260514_154203_6c6f94dc-a07e-4ba5-8688-106f01ccd2c8.png'),
+    image: '/stats/envio-1.webp',
     clip: 'polygon(64px 0, calc(100% - 14px) 0, calc(100% - 4px) 4px, 100% 14px, 100% calc(100% - 14px), calc(100% - 4px) calc(100% - 4px), calc(100% - 14px) 100%, 14px 100%, 4px calc(100% - 4px), 0 calc(100% - 14px), 0 64px)',
     text: 'lx-stat__text--a',
   },
   {
-    image: statImage('hf_20260514_154151_45c62c60-3bcc-4f21-8f9d-03722ebb5df8.png'),
+    image: '/stats/envio-2.webp',
     clip: 'polygon(0 14px, 4px 4px, 14px 0, calc(100% - 64px) 0, 100% 64px, 100% calc(100% - 14px), calc(100% - 4px) calc(100% - 4px), calc(100% - 14px) 100%, 64px 100%, 0 calc(100% - 64px))',
     text: 'lx-stat__text--b',
   },
   {
-    image: statImage('hf_20260514_152238_24ec8db4-d728-4739-bb30-e985533e9637.png'),
+    image: '/stats/envio-3.webp',
     clip: 'polygon(0 14px, 4px 4px, 14px 0, calc(100% - 64px) 0, 100% 64px, 100% calc(100% - 64px), calc(100% - 64px) 100%, 14px 100%, 4px calc(100% - 4px), 0 calc(100% - 14px))',
     text: 'lx-stat__text--c',
   },
