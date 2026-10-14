@@ -55,6 +55,14 @@ const COMMUNITY_POINTS: { icon: 'megaphone' | 'calendar' | 'pulse' | 'whatsapp';
   { icon: 'whatsapp', title: 'Atención directa', text: 'Habla con una persona del equipo por WhatsApp cuando lo necesites.' },
 ];
 
+const RING_R = 70;
+const RING_C = Math.round(2 * Math.PI * RING_R * 100) / 100;
+const OP_TEXT = {
+  ok: 'Operación normal · todos los servicios activos',
+  warn: 'Operación con avisos · revisa los servicios marcados',
+  bad: 'Hay servicios en pausa · consulta el detalle',
+} as const;
+
 function SectionHead({ tag, title, id, left = false }: { tag: string; title: string; id: string; left?: boolean }) {
   return (
     <Motion kind="blur" className={`lx-head ${left ? 'lx-head--left' : ''}`}>
@@ -71,6 +79,11 @@ export default async function HomePage() {
 
   const activeCount = c.services.filter((x) => x.status === 'active').length;
   const latest = c.announcements.slice(0, 3);
+
+  const hasPaused = c.services.some((x) => x.status === 'paused');
+  const hasLimited = c.services.some((x) => x.status === 'limited');
+  const opState: 'ok' | 'warn' | 'bad' = hasPaused ? 'bad' : hasLimited ? 'warn' : 'ok';
+  const ringSeg = Math.max(RING_C / Math.max(c.services.length, 1) - 10, 4);
 
   const half = Math.ceil(c.services.length / 2);
   const leftServices = c.services.slice(0, half);
@@ -218,74 +231,112 @@ export default async function HomePage() {
       <section id="estado" data-lx-section className="lx-sec lx-sec--a" aria-labelledby="estado-title">
         <div className="lx-wrap">
           <SectionHead tag="en tiempo real" title="Estado operativo" id="estado-title" />
+
+          <Motion kind="blur" className="lx-live">
+            <span className={`lx-live__dot lx-live__dot--${opState}`} aria-hidden="true" />
+            <span>{OP_TEXT[opState]}</span>
+          </Motion>
+
           <div className="lx-duo">
-            <Motion className="lx-chamfer" style={{ ['--c' as string]: '20px' }}>
-              <div className="lx-chamfer__in lx-panel">
-                <div className="lx-panel__top">
-                  <h3>Servicios</h3>
-                  <div className="lx-op">
-                    <span className="lx-op__num">{activeCount}<small>/{c.services.length}</small></span>
-                    <span className="lx-op__label">activos</span>
+            <Motion className="lx-chamfer" style={{ ['--c' as string]: '24px' }}>
+              <div className="lx-chamfer__in lx-panel lx-panel--ops">
+                <div className="lx-ops__hero">
+                  <div className="lx-ring" style={{ ['--C' as string]: RING_C }}>
+                    <svg viewBox="0 0 180 180" aria-hidden="true">
+                      <circle className="lx-ring__track" cx="90" cy="90" r={RING_R} />
+                      {c.services.map((sv, i) => (
+                        <circle
+                          key={sv.id}
+                          className={`lx-ring__seg lx-ring__seg--${sv.status}`}
+                          cx="90"
+                          cy="90"
+                          r={RING_R}
+                          style={{
+                            ['--seg' as string]: ringSeg,
+                            ['--off' as string]: -(i * (RING_C / Math.max(c.services.length, 1))),
+                            transitionDelay: `${300 + i * 180}ms`,
+                          }}
+                        />
+                      ))}
+                    </svg>
+                    <div className="lx-ring__center">
+                      <strong>{activeCount}<small>/{c.services.length}</small></strong>
+                      <span>activos</span>
+                    </div>
+                  </div>
+                  <div className="lx-ops__intro">
+                    <h3>Servicios</h3>
+                    <p>Estado de cada servicio y su tiempo estimado de entrega.</p>
+                    <span className="lx-ops__foot">Tiempos en días hábiles</span>
                   </div>
                 </div>
-                <div className="lx-bars" aria-hidden="true">
-                  {c.services.map((sv) => (
-                    <span key={sv.id} className={`lx-bar lx-bar--${sv.status}`} />
-                  ))}
-                </div>
-                <ul className="lx-oplist">
-                  {c.services.map((sv) => (
-                    <li key={sv.id}>
-                      <div>
+
+                <ul className="lx-svcgrid">
+                  {c.services.map((sv, i) => (
+                    <Motion as="li" key={sv.id} delay={200 + i * 100} className="lx-svc">
+                      {SERVICE_IMAGES[sv.icon] ? (
+                        <span className="lx-svc__logo">
+                          <Image src={SERVICE_IMAGES[sv.icon]} alt="" width={96} height={96} sizes="48px" />
+                        </span>
+                      ) : (
+                        <span className="lx-svc__logo lx-svc__logo--icon"><Icon name={serviceIcon(sv.icon)} size={22} /></span>
+                      )}
+                      <div className="lx-svc__info">
                         <strong>{sv.name}</strong>
                         <span>{sv.status_note || sv.eta_text}</span>
                       </div>
-                      <span className={`lx-pill lx-pill--${sv.status}`}>
+                      <span className={`lx-pill lx-pill--${sv.status} lx-pill--live`}>
                         <span className="lx-pill__dot" /> {STATUS_LABEL[sv.status]}
                       </span>
-                    </li>
+                    </Motion>
                   ))}
                 </ul>
-                <p className="lx-panel__foot">Tiempos estimados en días hábiles.</p>
               </div>
             </Motion>
 
-            <Motion delay={200} className="lx-chamfer" style={{ ['--c' as string]: '20px' }}>
-              <div className="lx-chamfer__in lx-panel">
+            <Motion delay={200} className="lx-chamfer" style={{ ['--c' as string]: '24px' }}>
+              <div className="lx-chamfer__in lx-panel lx-panel--pick">
                 <div className="lx-panel__top">
-                  <h3>Próximas recolecciones</h3>
+                  <div>
+                    <h3>Próximas recolecciones</h3>
+                    <p className="lx-panel__sub">Calendario publicado por el equipo.</p>
+                  </div>
                   <a
-                    className="lx-link"
+                    className="lx-cta lx-cta--sm"
                     href={whatsappLink(s, `Hola ${s.brand_name}, quiero agendar una recolección.`)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Agendar <Icon name="arrow" size={14} />
+                    Agendar <Icon name="arrow" size={13} />
                   </a>
                 </div>
                 {c.pickups.length === 0 ? (
                   <p className="lx-empty">Pronto publicaremos las próximas fechas. Escríbenos por WhatsApp para coordinar tu recolección.</p>
                 ) : (
-                  <ul className="lx-tickets">
-                    {c.pickups.map((p) => {
+                  <ol className="lx-tl">
+                    {c.pickups.map((p, i) => {
                       const d = dateParts(p.pickup_date);
                       const diff = daysBetween(c.today, p.pickup_date);
                       return (
-                        <li key={p.id}>
-                          <div className="lx-date">
+                        <Motion as="li" key={p.id} delay={250 + i * 120} className={`lx-tl__item ${i === 0 ? 'is-next' : ''}`}>
+                          <span className="lx-tl__dot" aria-hidden="true" />
+                          <div className="lx-tl__date">
                             <span>{d.month}</span>
                             <strong>{d.day}</strong>
                             <small>{d.weekday}</small>
                           </div>
-                          <div className="lx-tickets__info">
-                            <span className="lx-pill">{relativeDays(diff)}</span>
+                          <div className="lx-tl__info">
+                            <div className="lx-tl__tags">
+                              {i === 0 && <span className="lx-tl__next">Próxima</span>}
+                              <span className="lx-tl__when">{relativeDays(diff)}</span>
+                            </div>
                             <strong>{formatTime(p.start_time)} – {formatTime(p.end_time)}</strong>
                             <span>{p.note}</span>
                           </div>
-                        </li>
+                        </Motion>
                       );
                     })}
-                  </ul>
+                  </ol>
                 )}
                 {s.address && (
                   <p className="lx-panel__foot lx-panel__foot--addr"><Icon name="pin" size={14} /> {s.address}</p>
