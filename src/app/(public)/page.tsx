@@ -5,6 +5,7 @@ import { LeadForm } from '@/components/LeadForm';
 import { LxHero } from '@/components/LxHero';
 import { LxTopBar } from '@/components/LxTopBar';
 import { Motion } from '@/components/Motion';
+import { NewsFeatured, NewsItem, NewsMarquee } from '@/components/LxNews';
 import { getSiteContent, type Service } from '@/lib/content';
 import { dateParts, daysBetween, formatTime, relativeDays } from '@/lib/format';
 import { whatsappLink } from '@/lib/settings';
@@ -350,46 +351,32 @@ export default async function HomePage() {
 
       {/* ── 05 · Comunicados ──────────────────────────────── */}
       <section id="comunicados" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="comunicados-title">
-        <div className="lx-wrap lx-wrap--narrow">
+        <div className="lx-wrap">
           <SectionHead tag="avisos oficiales" title="Comunicados" id="comunicados-title" />
           {latest.length === 0 ? (
             <p className="lx-empty lx-empty--center">Aún no hay comunicados publicados.</p>
           ) : (
-            <ul className="lx-news">
-              {latest.map((a, i) => {
-                const d = dateParts(a.published_on);
-                return (
-                  <Motion as="li" key={a.id} delay={i * 150} className="lx-chamfer" style={{ ['--c' as string]: '16px' }}>
-                    <div className="lx-chamfer__in lx-newsitem">
-                      <div className="lx-date" aria-hidden="true">
-                        <strong>{d.day}</strong>
-                        <span>{d.month}</span>
-                        <small>{d.year}</small>
-                      </div>
-                      <div className="lx-newsitem__body">
-                        <div className="lx-newsitem__tags">
-                          <span className="lx-pill">{a.category}</span>
-                          {i === 0 && <span className="lx-latest">Más reciente</span>}
-                        </div>
-                        <h3>{a.title}</h3>
-                        <p>{a.body.length > 190 ? `${a.body.slice(0, 190).trimEnd()}…` : a.body}</p>
-                      </div>
-                    </div>
-                  </Motion>
-                );
-              })}
-            </ul>
+            <>
+              <NewsMarquee items={c.announcements.slice(0, 6)} />
+              <div className="lx-newsgrid">
+                <NewsFeatured item={latest[0]} max={360} />
+                <ul className="lx-news">
+                  {latest.slice(1).map((a, i) => (
+                    <NewsItem key={a.id} item={a} index={i} max={150} />
+                  ))}
+                  <li className="lx-news__more">
+                    <Link className="lx-arrowlink" href="/comunicados">
+                      Ver todos los comunicados
+                      <span className="lx-arrowbox"><Icon name="arrow" size={14} /></span>
+                    </Link>
+                    <a className="lx-note-link" href={wa} target="_blank" rel="noopener noreferrer">
+                      ¿Dudas? Escríbenos
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </>
           )}
-          <div className="lx-center-actions">
-            <Link className="lx-arrowlink" href="/comunicados">
-              Ver todos los comunicados
-              <span className="lx-arrowbox"><Icon name="arrow" size={14} /></span>
-            </Link>
-          </div>
-          <p className="lx-note">
-            ¿Dudas sobre un comunicado?{' '}
-            <a href={wa} target="_blank" rel="noopener noreferrer">Escríbenos</a>
-          </p>
         </div>
         <div className="lx-fade lx-fade--a" aria-hidden="true" />
       </section>

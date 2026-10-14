@@ -13,12 +13,52 @@ export interface LxLink {
 }
 
 /** Marco redondeado, barra de navegación flotante, indicador "01 — 06" y menú móvil. */
-export function LxChrome({ links, whatsappHref }: { links: LxLink[]; whatsappHref: string }) {
+export interface LxNotice {
+  id: number;
+  category: string;
+  title: string;
+}
+
+export function LxChrome({
+  links,
+  whatsappHref,
+  notices = [],
+}: {
+  links: LxLink[];
+  whatsappHref: string;
+  notices?: LxNotice[];
+}) {
   const pathname = usePathname();
   const [total, setTotal] = useState(0);
   const [current, setCurrent] = useState(0);
   const [activeId, setActiveId] = useState('');
   const [open, setOpen] = useState(false);
+  const [noticeIdx, setNoticeIdx] = useState(0);
+  const [noticePaused, setNoticePaused] = useState(false);
+  const [noticeClosed, setNoticeClosed] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (window.sessionStorage.getItem('lx-notice-closed') === '1') setNoticeClosed(true);
+    } catch {
+      /* sin almacenamiento: se muestra normal */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (notices.length < 2 || noticePaused || noticeClosed) return;
+    const id = window.setInterval(() => setNoticeIdx((i) => (i + 1) % notices.length), 5000);
+    return () => window.clearInterval(id);
+  }, [notices.length, noticePaused, noticeClosed]);
+
+  const closeNotice = () => {
+    setNoticeClosed(true);
+    try {
+      window.sessionStorage.setItem('lx-notice-closed', '1');
+    } catch {
+      /* ignorar */
+    }
+  };
 
   useEffect(() => {
     setOpen(false);
@@ -113,6 +153,28 @@ export function LxChrome({ links, whatsappHref }: { links: LxLink[]; whatsappHre
           <a className="lx-cta lx-cta--sheet" href={whatsappHref} target="_blank" rel="noopener noreferrer">
             <Icon name="whatsapp" size={16} /> WhatsApp
           </a>
+        </div>
+      )}
+
+      {total > 0 && !noticeClosed && notices.length > 0 && activeId !== 'comunicados' && (
+        <div
+          className="lx-notice"
+          role="region"
+          aria-label="Aviso reciente"
+          onMouseEnter={() => setNoticePaused(true)}
+          onMouseLeave={() => setNoticePaused(false)}
+        >
+          <Link href="/comunicados" className="lx-notice__link">
+            <span className="lx-notice__dot" aria-hidden="true" />
+            <span className="lx-notice__txt" key={notices[noticeIdx % notices.length].id}>
+              <b>{notices[noticeIdx % notices.length].category}</b>
+              <span>{notices[noticeIdx % notices.length].title}</span>
+            </span>
+            <Icon name="arrow" size={14} />
+          </Link>
+          <button type="button" className="lx-notice__x" aria-label="Cerrar aviso" onClick={closeNotice}>
+            <Icon name="close" size={14} />
+          </button>
         </div>
       )}
 

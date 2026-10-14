@@ -4,7 +4,7 @@ import { LxChrome, type LxLink } from '@/components/LxChrome';
 import { LxFooter } from '@/components/LxFooter';
 import { WhatsAppFab } from '@/components/SiteChrome';
 import { whatsappLink } from '@/lib/settings';
-import { loadSettings } from '@/lib/site-settings';
+import { getSiteContent } from '@/lib/content';
 import './lx.css';
 
 export const revalidate = 60;
@@ -19,10 +19,11 @@ const LINKS: LxLink[] = [
 ];
 
 export default async function PublicLayout({ children }: { children: ReactNode }) {
-  const settings = await loadSettings();
+  const { settings, announcements } = await getSiteContent();
+  const notices = announcements.slice(0, 5).map((a) => ({ id: a.id, category: a.category, title: a.title }));
   return (
     <div className="lx">
-      <LxChrome links={LINKS} whatsappHref={whatsappLink(settings)} />
+      <LxChrome links={LINKS} whatsappHref={whatsappLink(settings)} notices={notices} />
       <main id="contenido">{children}</main>
       <LxFooter settings={settings} />
       <WhatsAppFab settings={settings} />
