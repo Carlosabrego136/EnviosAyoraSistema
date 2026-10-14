@@ -2184,3 +2184,193 @@ html.js .lx-rise:not(.is-in) .lx-ring__seg {
     overflow-x: auto;
   }
 }
+
+/* ═══ Comunidad · blanco y azul ═══ */
+.lx-blue {
+  --blue-1: #0b1f3a;
+  --blue-2: #123a6b;
+  --blue-3: #1f5fa8;
+  --blue-4: #7fb4ee;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, var(--blue-1) 0%, var(--blue-2) 55%, #17508f 100%);
+}
+.lx-blue__glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+}
+.lx-blue__glow--a {
+  top: -160px;
+  right: -120px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(127, 180, 238, 0.45), transparent 70%);
+  animation: lx-float 14s ease-in-out infinite;
+}
+.lx-blue__glow--b {
+  bottom: -200px;
+  left: -140px;
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, rgba(31, 95, 168, 0.55), transparent 70%);
+  animation: lx-float 18s ease-in-out infinite reverse;
+}
+@keyframes lx-float {
+  50% {
+    transform: translate(30px, 24px);
+  }
+}
+.lx-blue__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+}
+.lx-blue__tag {
+  margin-bottom: 14px;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--blue-4);
+}
+.lx-blue__title {
+  font-size: clamp(32px, 4.4vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #fff;
+  text-wrap: balance;
+}
+.lx-blue__lead {
+  margin-top: 20px;
+  max-width: 52ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: #c6d8ee;
+}
+.lx-points--blue .lx-points__icon {
+  border-color: rgba(127, 180, 238, 0.7);
+  background: rgba(127, 180, 238, 0.12);
+  color: #fff;
+}
+.lx-points--blue strong {
+  color: #fff;
+}
+.lx-points--blue span:not(.lx-points__icon) {
+  color: #b7cbe6;
+}
+.lx-trust {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+.lx-trust strong {
+  display: block;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.lx-trust span {
+  display: block;
+  margin-top: 6px;
+  max-width: 14ch;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue-4);
+}
+.lx-formwrap {
+  filter: drop-shadow(0 30px 40px rgba(3, 12, 28, 0.45));
+}
+.lx-formcard--blue {
+  padding: 0;
+  gap: 0;
+  background: #fff;
+  color: var(--ink);
+  clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+}
+.lx-formcard__bar {
+  display: grid;
+  gap: 6px;
+  padding: 28px 32px 24px;
+  background: linear-gradient(135deg, var(--blue-3), #174c8a);
+  color: #fff;
+}
+.lx-formcard__bar h3 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.lx-formcard__bar p {
+  font-size: 14px;
+  color: #d4e4f8;
+}
+.lx-formcard__body {
+  display: grid;
+  gap: 16px;
+  padding: 28px 32px 32px;
+}
+.lx-blue .field label {
+  color: #174c8a;
+}
+.lx-blue input[type='text'],
+.lx-blue input[type='tel'],
+.lx-blue input[type='email'],
+.lx-blue select,
+.lx-blue textarea {
+  border-color: #c9d8ec;
+  background: #f6f9fd;
+}
+.lx-blue input:focus,
+.lx-blue select:focus,
+.lx-blue textarea:focus {
+  border-color: var(--blue-3);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(31, 95, 168, 0.18);
+}
+.lx-blue .field--check input {
+  accent-color: var(--blue-3);
+}
+.lx-blue .field--check label a {
+  color: var(--blue-3);
+}
+.lx-blue .form .btn {
+  background: linear-gradient(135deg, var(--blue-3), #174c8a);
+}
+.lx-blue .form-success h3 {
+  color: var(--ink);
+}
+@media (max-width: 520px) {
+  .lx-trust {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .lx-trust strong {
+    font-size: 28px;
+  }
+  .lx-formcard__bar,
+  .lx-formcard__body {
+    padding-inline: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-blue__glow {
+    animation: none;
+  }
+}

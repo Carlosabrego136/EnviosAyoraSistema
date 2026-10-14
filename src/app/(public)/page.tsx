@@ -382,15 +382,19 @@ export default async function HomePage() {
       </section>
 
       {/* ── 06 · Comunidad + formulario ───────────────────── */}
-      <section id="comunidad" data-lx-section className="lx-sec lx-sec--a" aria-labelledby="comunidad-title">
+      <section id="comunidad" data-lx-section className="lx-sec lx-blue" aria-labelledby="comunidad-title">
+        <div className="lx-blue__glow lx-blue__glow--a" aria-hidden="true" />
+        <div className="lx-blue__glow lx-blue__glow--b" aria-hidden="true" />
+        <div className="lx-blue__grid" aria-hidden="true" />
         <div className="lx-wrap">
           <div className="lx-community">
             <div>
               <Motion kind="blur">
-                <p className="lx-head__tag lx-head__tag--left">[{s.community_eyebrow.toLowerCase()}]</p>
-                <h2 id="comunidad-title" className="lx-big lx-big--sm">{s.community_title}</h2>
+                <p className="lx-blue__tag">[{s.community_eyebrow.toLowerCase()}]</p>
+                <h2 id="comunidad-title" className="lx-blue__title">{s.community_title}</h2>
+                <p className="lx-blue__lead">{s.community_text}</p>
               </Motion>
-              <ul className="lx-points">
+              <ul className="lx-points lx-points--blue">
                 {COMMUNITY_POINTS.map((pt, i) => (
                   <Motion as="li" key={pt.title} delay={i * 120}>
                     <span className="lx-points__icon"><Icon name={pt.icon} size={18} /></span>
@@ -401,15 +405,29 @@ export default async function HomePage() {
                   </Motion>
                 ))}
               </ul>
+              {c.stats.length > 0 && (
+                <Motion delay={300} className="lx-trust">
+                  {c.stats.slice(0, 3).map((st) => (
+                    <div key={st.id}>
+                      <strong>{st.value}</strong>
+                      <span>{st.label}</span>
+                    </div>
+                  ))}
+                </Motion>
+              )}
             </div>
-            <Motion delay={150} className="lx-chamfer" style={{ ['--c' as string]: '24px' }}>
-              <div className="lx-chamfer__in lx-formcard">
-                <h3>Únete a la comunidad</h3>
-                <p className="lx-formcard__sub">Déjanos tus datos y te contactamos. También puedes escribirnos directo.</p>
-                <LeadForm whatsappHref={wa} />
-                <a className="lx-cta lx-cta--wa lx-cta--block" href={wa} target="_blank" rel="noopener noreferrer">
-                  <Icon name="whatsapp" size={16} /> Hablar por WhatsApp
-                </a>
+            <Motion delay={150} className="lx-formwrap">
+              <div className="lx-formcard lx-formcard--blue">
+                <div className="lx-formcard__bar">
+                  <h3>Únete a la comunidad</h3>
+                  <p>Déjanos tus datos y te contactamos. También puedes escribirnos directo.</p>
+                </div>
+                <div className="lx-formcard__body">
+                  <LeadForm whatsappHref={wa} />
+                  <a className="lx-cta lx-cta--wa lx-cta--block" href={wa} target="_blank" rel="noopener noreferrer">
+                    <Icon name="whatsapp" size={16} /> Hablar por WhatsApp
+                  </a>
+                </div>
               </div>
             </Motion>
           </div>
