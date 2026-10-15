@@ -415,6 +415,54 @@ export const RESOURCES: Record<string, ResourceDef> = {
     ],
   },
 
+  saldos: {
+    key: 'saldos',
+    table: 'saldos',
+    permission: 'content',
+    singular: 'saldo',
+    plural: 'Saldos de La Ruta',
+    description:
+      'Perfiles de Facebook de los saldos con los que trabajas en Ensenada y Tijuana. Se muestran en la página de La Ruta del Saldo con un botón a cada perfil.',
+    orderBy: 'sort_order ASC, lower(name), id',
+    canCreate: true,
+    canDelete: true,
+    listLimit: 200,
+    searchColumns: ['name', 'city'],
+    titleOf: (r) => s(r.name),
+    columns: [
+      { name: 'name', label: 'Saldo' },
+      { name: 'city', label: 'Ciudad' },
+      { name: 'sort_order', label: 'Orden' },
+      { name: 'is_active', label: 'Visible', kind: 'bool' },
+    ],
+    fields: [
+      { name: 'name', label: 'Nombre del saldo', type: 'text', required: true, max: 100, wide: true },
+      {
+        name: 'city',
+        label: 'Ciudad',
+        type: 'select',
+        required: true,
+        default: 'Tijuana',
+        options: [
+          { value: 'Tijuana', label: 'Tijuana' },
+          { value: 'Ensenada', label: 'Ensenada' },
+          { value: 'Rosarito', label: 'Rosarito' },
+          { value: 'Otra', label: 'Otra' },
+        ],
+      },
+      { name: 'facebook_url', label: 'Perfil de Facebook (enlace)', type: 'url', required: true, max: 250, placeholder: 'https://www.facebook.com/…', wide: true },
+      { name: 'description', label: 'Descripción corta', type: 'text', max: 200, wide: true, placeholder: 'Ej. Ropa y calzado de saldo' },
+      { name: 'photo_id', label: 'Foto o logo', type: 'image', wide: true, help: 'Opcional. JPG, PNG o WebP.' },
+      { name: 'sort_order', label: 'Orden', type: 'number', min: 0, max: 999, default: 10 },
+      { name: 'is_active', label: 'Visible en el sitio', type: 'checkbox', default: true },
+    ],
+    validate: (v) => {
+      const errors: Record<string, string> = {};
+      if (!/^https:\/\//.test(s(v.facebook_url))) errors.facebook_url = 'El enlace debe empezar con https://';
+      return errors;
+    },
+  },
+
   solicitudes: {
     key: 'solicitudes',
     table: 'leads',

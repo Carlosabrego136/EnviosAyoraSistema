@@ -109,6 +109,7 @@ export default async function HomePage() {
   const weekdayName = WEEKDAY_OPTIONS.find((o) => o.value === s.pickup_weekday)?.label ?? 'Viernes';
   const pickupWindow = `${formatTime(s.pickup_start)} a ${formatTime(s.pickup_end)}`;
 
+  const extendedFee = Number(s.extended_zone_fee) > 0 ? Number(s.extended_zone_fee) : 0;
   const group = safeUrl(s.whatsapp_group_url);
   const fb = safeUrl(s.facebook_url);
   const tt = safeUrl(s.tiktok_url);
@@ -202,7 +203,7 @@ export default async function HomePage() {
           <div className="lx-services__center">
             <SectionHead tag="servicios" title="Servicios" id="servicios-title" />
             <Motion kind="blur" delay={150} className="lx-services__lead">
-              <p>Elige cómo viaja tu mercancía.</p>
+              <p>Elige cómo viaja tu mercancía. La paquetería se asigna según disponibilidad del destino.</p>
             </Motion>
             <Motion kind="blur" delay={200} className="lx-square">
               <video autoPlay loop muted playsInline preload="metadata" aria-hidden="true" tabIndex={-1}>
@@ -226,6 +227,7 @@ export default async function HomePage() {
                 <br />
                 <span className="lx-big__accent">{s.brand_tagline}</span>
               </h2>
+              {s.owner_names && <p className="lx-big__names">{s.owner_names}</p>}
             </Motion>
             <Motion kind="blur" delay={150} className="lx-about__copy">
               {s.footer_quote && <p>{s.footer_quote}</p>}
@@ -288,7 +290,7 @@ export default async function HomePage() {
               </Link>
             </Motion>
             <Motion delay={150} className="lx-quotegrid__tool">
-              <QuoteTool rates={rates} services={quoteServices} whatsappBase={waBase} brandName={s.brand_name} note={s.quote_note} />
+              <QuoteTool rates={rates} services={quoteServices} whatsappBase={waBase} brandName={s.brand_name} note={s.quote_note} extendedFee={extendedFee} extendedUrl={safeUrl(s.extended_zone_url) ?? ''} />
             </Motion>
           </div>
         </div>
@@ -593,8 +595,8 @@ export default async function HomePage() {
                     <Icon name="tiktok" size={16} /> TikTok
                   </a>
                 )}
-                <Link className="lx-cta lx-cta--ghost" href="/ruta-del-saldo">
-                  Conocer la ruta <Icon name="arrow" size={14} />
+                <Link className="lx-cta lx-cta--ghost" href="/ruta-del-saldo#saldos">
+                  Saldos con los que trabajamos <Icon name="arrow" size={14} />
                 </Link>
               </Motion>
               <ul className="lx-points lx-points--blue">

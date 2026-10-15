@@ -47,6 +47,9 @@ function parseSettings(formData: FormData): SettingsMap {
     if (def.type === 'weekday' && !WEEKDAY_OPTIONS.some((o) => o.value === value)) {
       errors[def.key] = 'Elige un día de la semana.';
     }
+    if (def.key === 'extended_zone_fee' && !/^\d{1,5}$/.test(value)) {
+      errors[def.key] = 'Escribe solo números, sin signos. Ej.: 285';
+    }
     if (!value && ['brand_name', 'whatsapp_number'].includes(def.key)) errors[def.key] = `${def.label} es obligatorio.`;
     values[def.key] = value;
   }

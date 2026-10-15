@@ -3,6 +3,8 @@ import { Icon } from '@/components/Icon';
 import { LxTopBar } from '@/components/LxTopBar';
 import { Motion } from '@/components/Motion';
 import { getSiteContent } from '@/lib/content';
+import { MerchantAvatar } from '@/components/MerchantDirectory';
+import { getPublicSaldos } from '@/lib/saldos';
 import { safeUrl, whatsappLink } from '@/lib/settings';
 
 export const revalidate = 60;
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RoutePage() {
-  const { settings: s } = await getSiteContent();
+  const [{ settings: s }, saldos] = await Promise.all([getSiteContent(), getPublicSaldos()]);
   const group = safeUrl(s.whatsapp_group_url);
   const fb = safeUrl(s.facebook_url);
   const tt = safeUrl(s.tiktok_url);
@@ -39,6 +41,34 @@ export default async function RoutePage() {
                 <a className="lx-cta lx-cta--dark" href={whatsappLink(s)} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp" size={16} /> Hablar con el equipo</a>
               </div>
             </div>
+          </div>
+
+          <div id="saldos" className="lx-saldos">
+            <Motion kind="blur" className="lx-head">
+              <p className="lx-head__tag">[nuestros proveedores]</p>
+              <h2 className="lx-head__title">Saldos con los que trabajamos</h2>
+            </Motion>
+            <p className="lx-saldos__lead">Estos son los saldos de Ensenada y Tijuana con los que recolectamos y compramos. Visita su perfil de Facebook y conoce sus novedades.</p>
+            {saldos.length === 0 ? (
+              <p className="lx-empty lx-empty--center">Pronto publicaremos aquí los perfiles de los saldos.</p>
+            ) : (
+              <ul className="lx-saldos__grid">
+                {saldos.map((sd) => (
+                  <li key={sd.id} className="lx-saldo">
+                    <MerchantAvatar m={{ name: sd.name, photo_id: sd.photo_id }} />
+                    <div className="lx-saldo__body">
+                      <h3>{sd.name}</h3>
+                      <span>{sd.city}{sd.description ? ` · ${sd.description}` : ''}</span>
+                    </div>
+                    {safeUrl(sd.facebook_url) && (
+                      <a className="lx-cta lx-cta--dark lx-cta--flat" href={safeUrl(sd.facebook_url) as string} target="_blank" rel="noopener noreferrer">
+                        <Icon name="facebook" size={14} /> Ver Facebook
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>

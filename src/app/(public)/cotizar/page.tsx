@@ -5,7 +5,7 @@ import { QuoteTool } from '@/components/QuoteTool';
 import { getSiteContent } from '@/lib/content';
 import { DEFAULT_QUOTE_SERVICES, SERVICE_LABEL, SERVICE_SLUGS, formatKg, formatMXN, splitCarriers } from '@/lib/quote';
 import { getRates } from '@/lib/rates';
-import { whatsappLink } from '@/lib/settings';
+import { safeUrl, whatsappLink } from '@/lib/settings';
 
 export const revalidate = 60;
 export const metadata: Metadata = {
@@ -49,7 +49,21 @@ export default async function QuotePage({ searchParams }: { searchParams: Promis
               </ol>
             </div>
             <div className="lx-quotegrid__tool">
-              <QuoteTool rates={rates} services={services} whatsappBase={wa.split('?')[0]} brandName={s.brand_name} note={s.quote_note} initialSlug={servicio} />
+              <QuoteTool rates={rates} services={services} whatsappBase={wa.split('?')[0]} brandName={s.brand_name} note={s.quote_note} initialSlug={servicio} extendedFee={Number(s.extended_zone_fee) > 0 ? Number(s.extended_zone_fee) : 0} extendedUrl={safeUrl(s.extended_zone_url) ?? ''} />
+            </div>
+          </div>
+
+          <h2 className="lx-sub">Cómo se calcula el cobro</h2>
+          <div className="lx-policy">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/politica-tarifas.webp" alt="Política de tarifas: se cobra el mayor entre el peso físico (báscula) y el peso volumétrico (largo × ancho × alto ÷ 5000)" loading="lazy" />
+            <div>
+              <p>{s.volume_policy}</p>
+              <p className="lx-policy__ext">
+                <strong>Zona extendida:</strong> algunos destinos llevan un cargo extra de {Number(s.extended_zone_fee) > 0 ? `$${Number(s.extended_zone_fee)} pesos` : 'zona extendida'}.{' '}
+                {safeUrl(s.extended_zone_url) && <a href={safeUrl(s.extended_zone_url) as string} target="_blank" rel="noopener noreferrer">Consulta aquí si tu destino aplica</a>}
+              </p>
+              <p className="lx-policy__ext">La paquetería se asigna según disponibilidad del destino.</p>
             </div>
           </div>
 

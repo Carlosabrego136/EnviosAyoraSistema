@@ -16,9 +16,10 @@ export function LxFooter({ settings }: { settings: SettingsMap }) {
           <div className="lx-footer__brand">
             <Image src="/logo.png" alt={`${settings.brand_name} · ${settings.brand_tagline}`} width={878} height={467} sizes="220px" className="lx-footer__logo" />
             {settings.footer_quote && <p>“{settings.footer_quote}”</p>}
-            {settings.location_badge && (
-              <p className="lx-footer__zone"><Icon name="pin" size={14} /> {settings.location_badge}</p>
+            {(settings.location_text || settings.location_badge) && (
+              <p className="lx-footer__zone"><Icon name="pin" size={14} /> {settings.location_text || settings.location_badge}</p>
             )}
+            {settings.owner_names && <p className="lx-footer__zone">{settings.owner_names}</p>}
           </div>
           <div>
             <h2>Contacto</h2>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { carriersFor, destinationsFor, findQuote, formatKg, formatMXN, type Rate } from '@/lib/quote';
+import { carriersFor, destinationsFor, findQuote, formatKg, formatMXN, volumetricKg, type Rate } from '@/lib/quote';
 import { Icon } from './Icon';
 
 export interface QuoteService {
@@ -18,12 +18,15 @@ interface Props {
   brandName: string;
   note: string;
   initialSlug?: string;
+  /** Cargo extra por zona extendida (pesos); 0 = no se ofrece la casilla. */
+  extendedFee?: number;
+  extendedUrl?: string;
 }
 
 const OTHER = '__otro';
 
 /** Cotizador: calcula con el tabulador cargado en el panel y confirma por WhatsApp con el mensaje ya armado. */
-export function QuoteTool({ rates, services, whatsappBase, brandName, note, initialSlug }: Props) {
+export function QuoteTool({ rates, services, whatsappBase, brandName, note, initialSlug, extendedFee = 0, extendedUrl = '' }: Props) {
   const [slug, setSlug] = useState(services.some((s) => s.slug === initialSlug) ? (initialSlug as string) : (services[0]?.slug ?? ''));
   const [carrier, setCarrier] = useState('');
   const [dest, setDest] = useState('');
@@ -31,6 +34,10 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
   const [weight, setWeight] = useState('');
   const [pallets, setPallets] = useState('');
   const [details, setDetails] = useState('');
+  const [dimL, setDimL] = useState('');
+  const [dimW, setDimW] = useState('');
+  const [dimH, setDimH] = useState('');
+  const [extended, setExtended] = useState(false);
 
   const service = services.find((s) => s.slug === slug) ?? services[0];
   const isPallet = slug === 'tarimas';
@@ -46,11 +53,17 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
   const destOptions = useMemo(() => destinationsFor(rates, slug, carrierValue), [rates, slug, carrierValue]);
   const destinationValue = destOptions.length > 0 ? (dest === OTHER ? destText : dest) : destText;
 
-  const weightNum = Number(weight.replace(',', '.'));
+  const num = (v: string) => Number(v.replace(',', '.'));
+  const realKg = Number.isFinite(num(weight)) && num(weight) > 0 ? num(weight) : 0;
+  const volKg = volumetricKg(num(dimL), num(dimW), num(dimH));
+  // Se cobra el mayor entre el peso real y el volumétrico.
+  const weightNum = Math.max(realKg, volKg);
+  const fee = extended && extendedFee > 0 ? extendedFee : 0;
   const quote =
     !isPallet && serviceHasRates && weightNum > 0
       ? findQuote(rates, { service: slug, carrier: carrierValue, destination: destinationValue, weight: weightNum })
       : null;
+  const grandTotal = quote ? Math.round((quote.total + fee) * 100) / 100 : 0;
 
   const message = useMemo(() => {
     const lines = [`Hola ${brandName}, quiero cotizar un envío.`, `Servicio: ${service?.name ?? ''}`];
@@ -61,11 +74,14 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
       if (weightNum > 0) lines.push(`Peso aproximado: ${formatKg(weightNum)}`);
       if (details) lines.push(`Detalles: ${details}`);
     } else if (weightNum > 0) {
-      lines.push(`Peso: ${formatKg(weightNum)}`);
-      if (quote) lines.push(`Precio estimado en el sitio: ${formatMXN(quote.total)}`);
+      if (realKg > 0) lines.push(`Peso real: ${formatKg(realKg)}`);
+      if (volKg > 0) lines.push(`Medidas: ${dimL} x ${dimW} x ${dimH} cm (peso volumétrico ${formatKg(volKg)})`);
+      lines.push(`Peso a cobrar: ${formatKg(weightNum)}`);
+      if (fee > 0) lines.push(`Zona extendida: sí (+${formatMXN(fee)})`);
+      if (quote) lines.push(`Precio estimado en el sitio: ${formatMXN(grandTotal)}`);
     }
     return lines.join('\n');
-  }, [brandName, service, carrierValue, destinationValue, isPallet, pallets, weightNum, details, quote]);
+  }, [brandName, service, carrierValue, destinationValue, isPallet, pallets, weightNum, realKg, volKg, dimL, dimW, dimH, fee, grandTotal, details, quote]);
 
   const waHref = `${whatsappBase}?text=${encodeURIComponent(message)}`;
 
@@ -158,9 +174,35 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
               </div>
             </>
           ) : (
-            <div className="field">
-              <label htmlFor="q-weight">Peso del paquete (kg)</label>
-              <input id="q-weight" type="number" inputMode="decimal" min={0} step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Ej. 2.5" />
+            <>
+              <div className="field field--wide">
+                <label htmlFor="q-weight">Peso real del paquete (kg)</label>
+                <input id="q-weight" type="number" inputMode="decimal" min={0} step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Ej. 1.2" />
+              </div>
+              <fieldset className="field field--wide lx-quote__dims">
+                <legend>Medidas de la caja en cm (opcional, para el peso volumétrico)</legend>
+                <div>
+                  <input aria-label="Largo en centímetros" type="number" inputMode="decimal" min={0} step="0.1" value={dimL} onChange={(e) => setDimL(e.target.value)} placeholder="Largo" />
+                  <input aria-label="Ancho en centímetros" type="number" inputMode="decimal" min={0} step="0.1" value={dimW} onChange={(e) => setDimW(e.target.value)} placeholder="Ancho" />
+                  <input aria-label="Alto en centímetros" type="number" inputMode="decimal" min={0} step="0.1" value={dimH} onChange={(e) => setDimH(e.target.value)} placeholder="Alto" />
+                </div>
+                {volKg > 0 && (
+                  <small>
+                    Peso volumétrico: {formatKg(volKg)}{realKg > 0 ? ` · Peso real: ${formatKg(realKg)}` : ''} · <strong>Se cobra el mayor: {formatKg(weightNum)}</strong>
+                  </small>
+                )}
+              </fieldset>
+            </>
+          )}
+          {extendedFee > 0 && !isPallet && (
+            <div className="field field--check field--wide lx-quote__ext">
+              <input id="q-ext" type="checkbox" checked={extended} onChange={(e) => setExtended(e.target.checked)} />
+              <label htmlFor="q-ext">
+                Mi destino es zona extendida (+{formatMXN(extendedFee)}).{' '}
+                {extendedUrl && (
+                  <a href={extendedUrl} target="_blank" rel="noopener noreferrer">Consultar si mi destino aplica</a>
+                )}
+              </label>
             </div>
           )}
         </div>
@@ -173,12 +215,14 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
           ) : quote ? (
             <>
               <span className="lx-quote__label">Precio estimado</span>
-              <strong>{formatMXN(quote.total)}</strong>
+              <strong>{formatMXN(grandTotal)}</strong>
               <small>
                 {quote.rate.carrier || service?.name}
                 {quote.rate.destination ? ` · ${quote.rate.destination}` : ''} · {formatKg(quote.rate.weight_from)} a {formatKg(quote.rate.weight_to)}
                 {quote.rate.price_type === 'per_kg' ? ` · ${formatMXN(quote.rate.price)} por kg × ${quote.billedKg} kg` : ''}
               </small>
+              {fee > 0 && <small>Incluye cargo por zona extendida de {formatMXN(fee)}.</small>}
+              {volKg > realKg && volKg > 0 && <small>Se cobró el peso volumétrico ({formatKg(volKg)}) por ser mayor que el real.</small>}
               {quote.rate.note && <small>{quote.rate.note}</small>}
             </>
           ) : needCarrier ? (
@@ -186,7 +230,7 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
           ) : needDest ? (
             <p>Elige el destino o zona para ver el precio estimado.</p>
           ) : !(weightNum > 0) ? (
-            <p>Escribe el peso de tu paquete para ver el precio estimado.</p>
+            <p>Escribe el peso de tu paquete (o sus medidas) para ver el precio estimado.</p>
           ) : (
             <p>No tenemos una tarifa publicada para ese peso o destino. Cotízalo directo por WhatsApp y te respondemos al momento.</p>
           )}

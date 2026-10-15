@@ -18,6 +18,7 @@ export const CARRIERS: Carrier[] = [
   { key: 'paquetexpress', name: 'Paquete Express', url: 'https://www.paquetexpress.com.mx/rastreo/{g}', home: 'https://www.paquetexpress.com.mx/rastreo', hint: 'Número de guía' },
   { key: 'estafeta', name: 'Estafeta', url: null, home: 'https://www.estafeta.com/rastrear-envio', hint: '10 o 22 dígitos' },
   { key: 'bajapack', name: 'Baja Pack Express', url: null, home: 'https://www.bajapack.com/rastrear/', hint: 'Número de guía' },
+  { key: 'castores', name: 'Castores', url: null, home: 'https://www.castores.com.mx', hint: 'Número de guía' },
   { key: 'volaris', name: 'Volaris Cargo', url: null, home: '', noPublicTracking: true, hint: 'Número de guía aérea' },
 ];
 

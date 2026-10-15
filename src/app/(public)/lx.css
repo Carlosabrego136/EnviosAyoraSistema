@@ -2635,3 +2635,26 @@ html.js .lx-rise:not(.is-in) .lx-ring__seg {
 .lx-service__body h3, .lx-mv__card h3 { color: var(--navy); }
 .lx-link, .lx-note a, .lx-note-link { color: #ea580c; }
 .lx-footer { background: linear-gradient(135deg, #0b1220, #1e293b); }
+
+/* ── Peso volumétrico, zona extendida, política y saldos ── */
+.lx-big__names { margin: 14px 0 0; font-size: 15px; font-weight: 600; letter-spacing: 0.04em; color: var(--steel); }
+.lx-quote__dims { border: 0; margin: 0; padding: 0; min-inline-size: 0; display: grid; gap: 6px; }
+.lx-quote__dims legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--navy); }
+.lx-quote__dims > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lx-quote__dims small { font-size: 12px; color: var(--steel); }
+.lx-quote__ext { display: flex; gap: 10px; align-items: flex-start; }
+.lx-quote__ext input { width: auto; margin-top: 3px; }
+.lx-quote__ext label { font-weight: 400; font-size: 13px; }
+.lx-quote__ext a { color: #ea580c; text-decoration: underline; }
+.lx-policy { display: grid; gap: 22px; align-items: center; margin-bottom: 8px; }
+@media (min-width: 960px) { .lx-policy { grid-template-columns: 7fr 5fr; gap: 40px; } }
+.lx-policy img { width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 12px 36px rgba(15, 23, 42, 0.1); }
+.lx-policy p { margin: 0 0 12px; font-size: 16px; line-height: 1.7; color: var(--steel); }
+.lx-policy__ext a { color: #ea580c; text-decoration: underline; }
+.lx-saldos { margin-top: 72px; scroll-margin-top: 90px; }
+.lx-saldos__lead { max-width: 640px; margin: 0 auto 28px; text-align: center; color: var(--mid); }
+.lx-saldos__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.lx-saldo { display: grid; grid-template-columns: auto 1fr; gap: 12px 14px; align-items: center; padding: 16px; background: #fff; border: 1px solid #fed7aa; border-radius: 16px; }
+.lx-saldo .lx-cta { grid-column: 1 / -1; justify-content: center; }
+.lx-saldo__body h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--navy); }
+.lx-saldo__body span { font-size: 12px; color: var(--mid); }

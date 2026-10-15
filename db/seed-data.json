@@ -29,9 +29,24 @@
     }
   ],
   "stats": [
-    { "value": "32", "label": "Estados de la República", "caption": "Enviamos a todo México", "sort_order": 1 },
-    { "value": "VIE", "label": "Día de recolección", "caption": "De 10:00 a 16:00", "sort_order": 2 },
-    { "value": "4", "label": "Servicios de envío", "caption": "Aéreo, terrestre, Bajapack y tarimas", "sort_order": 3 }
+    {
+      "value": "32",
+      "label": "Estados de la República",
+      "caption": "Enviamos a todo México",
+      "sort_order": 1
+    },
+    {
+      "value": "VIE",
+      "label": "Día de recolección",
+      "caption": "De 10:00 a 16:00",
+      "sort_order": 2
+    },
+    {
+      "value": "4",
+      "label": "Servicios de envío",
+      "caption": "Aéreo, terrestre, Bajapack y tarimas",
+      "sort_order": 3
+    }
   ],
   "services": [
     {
@@ -40,7 +55,7 @@
       "description": "Llega más rápido a cualquier parte de la República. Cotiza por peso y paquetería.",
       "eta_text": "",
       "icon": "plane",
-      "carriers": "FedEx, DHL, Estafeta, Volaris",
+      "carriers": "Estafeta, Volaris, DHL, FedEx",
       "coverage": "Todo México",
       "sort_order": 1
     },
@@ -50,7 +65,7 @@
       "description": "La opción económica para tus compras. Cotiza por peso y paquetería.",
       "eta_text": "",
       "icon": "truck",
-      "carriers": "Paquete Express, FedEx, Estafeta",
+      "carriers": "Paquete Express, Estafeta, FedEx",
       "coverage": "Todo México",
       "sort_order": 2
     },
@@ -70,7 +85,7 @@
       "description": "Envío terrestre de gran volumen, en tarimas. Cotización personalizada.",
       "eta_text": "",
       "icon": "pallet",
-      "carriers": "",
+      "carriers": "Castores, Estafeta",
       "coverage": "",
       "sort_order": 4
     }

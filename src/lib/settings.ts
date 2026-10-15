@@ -77,7 +77,7 @@ Pago en miércoles|Salida: jueves`;
 export const SETTING_DEFS: SettingDef[] = [
   // ── Marca
   { key: 'brand_name', label: 'Nombre del negocio', group: 'Marca', type: 'text', max: 60, default: 'Envíos Ayora' },
-  { key: 'brand_tagline', label: 'Eslogan corto', group: 'Marca', type: 'text', max: 80, default: 'Recolección y Envíos' },
+  { key: 'brand_tagline', label: 'Eslogan corto', group: 'Marca', type: 'text', max: 80, default: 'Fénix Recolección y Envíos' },
   {
     key: 'brand_legal',
     label: 'Nombre comercial / razón social',
@@ -102,7 +102,8 @@ export const SETTING_DEFS: SettingDef[] = [
   { key: 'whatsapp_greeting', label: 'Mensaje inicial de WhatsApp', group: 'Contacto', type: 'text', max: 200, default: 'Hola Envíos Ayora, me gustaría información sobre sus servicios de envío.' },
   { key: 'contact_email', label: 'Correo de contacto', group: 'Contacto', type: 'email', max: 120, help: 'Opcional. Se muestra en el pie de página.', default: '' },
   { key: 'address', label: 'Dirección de las instalaciones', group: 'Contacto', type: 'textarea', max: 300, help: 'Opcional. Se muestra junto al calendario de recolecciones.', default: '' },
-  { key: 'location_badge', label: 'Zonas de entrega personal', group: 'Contacto', type: 'text', max: 80, help: 'Se muestra en la portada.', default: 'Ensenada · Tijuana · Rosarito' },
+  { key: 'location_badge', label: 'Etiqueta de ubicación (portada)', group: 'Contacto', type: 'text', max: 80, help: 'Frase corta que se ve arriba del título de la portada.', default: 'Ubicados en la zona 5 y 10, Tijuana' },
+  { key: 'location_text', label: 'Dónde nos ubicamos', group: 'Contacto', type: 'textarea', max: 300, help: 'Se muestra en el pie de página.', default: 'Nos ubicamos en el distrito de recolección más importante de Tijuana, en el área de 5 y 10 (swap meet).' },
   { key: 'timezone', label: 'Zona horaria', group: 'Contacto', type: 'timezone', max: 60, help: 'Se usa para el reloj y el calendario. Ejemplo: America/Tijuana', default: 'America/Tijuana' },
   // ── Recolección
   { key: 'pickup_weekday', label: 'Día de recolección', group: 'Recolección semanal', type: 'weekday', max: 1, help: 'El sitio calcula solo las próximas fechas. Para cancelar un día o cambiar el horario de una fecha, usa "Recolecciones (excepciones)".', default: '5' },
@@ -112,10 +113,13 @@ export const SETTING_DEFS: SettingDef[] = [
   // ── Enlaces y redes
   { key: 'whatsapp_group_url', label: 'Grupo de WhatsApp (La Ruta del Saldo)', group: 'Enlaces y redes', type: 'url', max: 200, help: 'Enlace de invitación al grupo. Debe empezar con https://', default: 'https://chat.whatsapp.com/GrOSxcjNg4yBYprj2VIhW0' },
   { key: 'facebook_url', label: 'Facebook', group: 'Enlaces y redes', type: 'url', max: 200, default: 'https://www.facebook.com/share/18KJCwsqrK/' },
-  { key: 'tiktok_url', label: 'TikTok', group: 'Enlaces y redes', type: 'url', max: 200, help: 'Si lo dejas vacío, el botón de TikTok no se muestra.', default: '' },
+  { key: 'tiktok_url', label: 'TikTok', group: 'Enlaces y redes', type: 'url', max: 200, help: 'Si lo dejas vacío, el botón de TikTok no se muestra.', default: 'https://www.tiktok.com/@rafaelayorafany' },
   { key: 'tracking_url', label: 'Sitio de rastreo de envíos (opcional)', group: 'Enlaces y redes', type: 'url', max: 200, help: 'Si lo llenas, aparece un botón para consultar tu sistema de rastreo.', default: '' },
   // ── Cotizador
-  { key: 'quote_note', label: 'Aviso bajo el cotizador', group: 'Cotizador', type: 'textarea', max: 300, default: 'Precio estimado. El costo final se confirma antes de realizar el envío y puede variar por peso, volumen y destino.' },
+  { key: 'quote_note', label: 'Aviso bajo el cotizador', group: 'Cotizador', type: 'textarea', max: 300, default: 'Precio estimado. El costo final se confirma antes de realizar el envío. La paquetería se asigna según disponibilidad del destino.' },
+  { key: 'extended_zone_fee', label: 'Cargo por zona extendida (pesos)', group: 'Cotizador', type: 'text', max: 6, help: 'Solo números. Se suma cuando el destino es zona extendida.', default: '285' },
+  { key: 'extended_zone_url', label: 'Enlace para consultar zona extendida', group: 'Cotizador', type: 'url', max: 200, default: 'https://www.zonaextendida.com' },
+  { key: 'volume_policy', label: 'Política de tarifas y dimensiones', group: 'Cotizador', type: 'textarea', max: 500, default: 'El importe aplicable a cada envío se calcula tomando como referencia el mayor valor entre el peso real de la carga y su volumen (calculado mediante sus dimensiones). Esto nos permite optimizar la capacidad de nuestras unidades y garantizar un manejo seguro de su mercancía.' },
   // ── La Ruta del Saldo
   { key: 'route_title', label: 'Título', group: 'La Ruta del Saldo', type: 'text', max: 80, default: 'La Ruta del Saldo Ensenada–Tijuana' },
   {
@@ -128,7 +132,7 @@ export const SETTING_DEFS: SettingDef[] = [
       'Compramos, recolectamos y enviamos. Entregamos personalmente en Ensenada, Tijuana y Rosarito, y si eres foráneo te enviamos a cualquier ubicación de la República Mexicana. Agrégate a nuestro grupo de WhatsApp y síguenos en redes.',
   },
   // ── Espacio personal y nosotros
-  { key: 'owner_names', label: 'Nombres de quienes dan la cara', group: 'Espacio personal', type: 'text', max: 80, default: 'Rafael Ayora y Fany Molina' },
+  { key: 'owner_names', label: 'Nombres de quienes dan la cara', group: 'Espacio personal', type: 'text', max: 80, default: 'Fany Ayora y Rafael Ayora' },
   { key: 'owner_role', label: 'Frase bajo los nombres', group: 'Espacio personal', type: 'text', max: 80, default: 'Tus recolectores de confianza' },
   {
     key: 'mission_text',

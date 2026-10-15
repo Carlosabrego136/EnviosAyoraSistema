@@ -60,6 +60,12 @@ export const GUIDES: Record<string, Guide> = {
     newLabel: 'Publicar mensaje',
     where: 'Sección "Un mensaje para ti"',
   },
+  saldos: {
+    what: 'Los perfiles de Facebook de los saldos con los que compras y recolectas en Ensenada y Tijuana.',
+    steps: ['Pulsa "Agregar saldo", escribe el nombre, elige la ciudad y pega el enlace de su Facebook.', 'Puedes poner una foto o logo y una descripción corta.', 'Cada saldo aparece con un botón "Ver Facebook" en La Ruta del Saldo.', 'Usa "Orden" para decidir cuál sale primero, o quita "Visible" para ocultarlo.'],
+    newLabel: 'Agregar saldo',
+    where: 'Página La Ruta del Saldo',
+  },
   solicitudes: {
     what: 'Personas que llenaron el formulario del sitio para unirse o pedir información.',
     steps: ['Pulsa "Abrir" para ver los datos de la persona.', 'Usa "Responder por WhatsApp" para escribirle directo.', 'Cambia el estado a Contactado o Cerrado para llevar el control.'],

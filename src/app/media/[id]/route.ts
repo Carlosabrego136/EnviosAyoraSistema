@@ -8,7 +8,7 @@ const NOT_FOUND = () => new Response('Not found', { status: 404, headers: { 'Cac
 
 /**
  * Imágenes subidas desde el panel. Solo se sirven si están en uso en contenido visible del sitio
- * (mensaje activo o comerciante público) o si quien pide es una persona con sesión del panel.
+ * (mensaje activo, comerciante público o saldo visible) o si quien pide es una persona con sesión del panel.
  */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
@@ -17,7 +17,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     let allowed = false;
     const ref = await query<{ ok: boolean }>(
       `SELECT (EXISTS (SELECT 1 FROM owner_posts WHERE photo_id = $1 AND is_active)
-            OR EXISTS (SELECT 1 FROM merchants WHERE photo_id = $1 AND is_public)) AS ok`,
+            OR EXISTS (SELECT 1 FROM merchants WHERE photo_id = $1 AND is_public)
+            OR EXISTS (SELECT 1 FROM saldos WHERE photo_id = $1 AND is_active)) AS ok`,
       [id],
     );
     allowed = Boolean(ref[0]?.ok);

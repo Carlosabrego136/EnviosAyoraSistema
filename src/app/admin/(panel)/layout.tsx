@@ -26,6 +26,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     { href: '/admin/c/tarifas', label: 'Tarifas (cotizador)', icon: 'calc' },
     { href: '/admin/c/comerciantes', label: 'Comerciantes y Top 9', icon: 'store' },
     { href: '/admin/c/mensajes', label: 'Espacio personal', icon: 'star' },
+    { href: '/admin/c/saldos', label: 'Saldos de La Ruta', icon: 'route' },
     { href: '/admin/importar', label: 'Importar desde Excel', icon: 'link' },
     { href: '/admin/c/recolecciones', label: 'Recolecciones (excepciones)', icon: 'calendar' },
     { href: '/admin/c/slides', label: 'Carrusel', icon: 'play' },

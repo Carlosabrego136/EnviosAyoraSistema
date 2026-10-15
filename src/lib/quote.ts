@@ -25,7 +25,7 @@ export interface Rate {
 export const formatMXN = (n: number): string =>
   new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 2 }).format(n);
 
-export const formatKg = (n: number): string => `${Number.isInteger(n) ? n : n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')} kg`;
+export const formatKg = (n: number): string => `${Number.isInteger(n) ? n : n.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')} kg`;
 
 const uniq = (list: string[]) => Array.from(new Set(list));
 
@@ -75,10 +75,10 @@ export function findQuote(
 
 /** Servicios predeterminados del cotizador si la base de datos aún no tiene los 4 servicios cargados. */
 export const DEFAULT_QUOTE_SERVICES = [
-  { slug: 'aereo', name: 'Envío aéreo', carriers: ['FedEx', 'DHL', 'Estafeta', 'Volaris'], coverage: 'Todo México' },
-  { slug: 'terrestre', name: 'Envío terrestre', carriers: ['Paquete Express', 'FedEx', 'Estafeta'], coverage: 'Todo México' },
+  { slug: 'aereo', name: 'Envío aéreo', carriers: ['Estafeta', 'Volaris', 'DHL', 'FedEx'], coverage: 'Todo México' },
+  { slug: 'terrestre', name: 'Envío terrestre', carriers: ['Paquete Express', 'Estafeta', 'FedEx'], coverage: 'Todo México' },
   { slug: 'bajapack', name: 'Bajapack', carriers: ['Baja Pack Express'], coverage: 'Solo Baja California' },
-  { slug: 'tarimas', name: 'Gran volumen · Tarimas', carriers: [], coverage: '' },
+  { slug: 'tarimas', name: 'Gran volumen · Tarimas', carriers: ['Castores', 'Estafeta'], coverage: '' },
 ];
 
 export const splitCarriers = (value: string): string[] =>
@@ -86,3 +86,12 @@ export const splitCarriers = (value: string): string[] =>
     .split(',')
     .map((c) => c.trim())
     .filter(Boolean);
+
+/** Divisor estándar del peso volumétrico (cm³ → kg). */
+export const VOLUMETRIC_DIVISOR = 5000;
+
+/** Peso volumétrico en kg: largo × ancho × alto (cm) ÷ 5000. Devuelve 0 si falta alguna medida. */
+export function volumetricKg(l: number, w: number, h: number): number {
+  if (![l, w, h].every((n) => Number.isFinite(n) && n > 0)) return 0;
+  return Math.round(((l * w * h) / VOLUMETRIC_DIVISOR) * 1000) / 1000;
+}
