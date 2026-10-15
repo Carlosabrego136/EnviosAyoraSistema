@@ -163,7 +163,8 @@ export const SETTING_DEFS: SettingDef[] = [
     default: STEPS_DEFAULT,
   },
   { key: 'schedule_title', label: 'Calendario · título', group: 'Calendario de pagos y salidas', type: 'text', max: 80, default: 'Calendario de pagos y salida de cajas' },
-  { key: 'schedule_intro', label: 'Calendario · introducción', group: 'Calendario de pagos y salidas', type: 'textarea', max: 400, default: 'Para coordinar el despacho puntual de tu caja a cualquier parte de la República Mexicana, el flujo semanal opera así:' },
+  { key: 'schedule_intro', label: 'Calendario · introducción', group: 'Calendario de pagos y salidas', type: 'textarea', max: 400, default: 'Para coordinar el despacho puntual de tu caja a cualquier parte de la República Mexicana, el flujo semanal opera así. Es un proceso interno de pagos y salidas: no es el horario de atención a clientes ni a vendedores.' },
+  { key: 'schedule_note', label: 'Calendario · nota final', group: 'Calendario de pagos y salidas', type: 'text', max: 120, help: 'Opcional. Se muestra debajo de las filas.', default: 'Los viernes no hay salida de envíos.' },
   {
     key: 'schedule_rows',
     label: 'Calendario · filas',

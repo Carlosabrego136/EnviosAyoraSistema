@@ -351,7 +351,7 @@ export default async function HomePage() {
           {schedule.length > 0 && (
             <Motion delay={150} className="lx-sched">
               <div className="lx-sched__head">
-                <span className="lx-sched__tag">Esquema de atención</span>
+                <span className="lx-sched__tag">Calendario interno de pagos y salidas</span>
                 <h3>{s.schedule_title}</h3>
                 {s.schedule_intro && <p>{s.schedule_intro}</p>}
               </div>
@@ -363,6 +363,10 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
+              <p className="lx-sched__foot">
+                {s.schedule_note ? `${s.schedule_note} ` : ''}
+                <strong>Recolección: solo los {weekdayName.toLowerCase()} de {pickupWindow}</strong>
+              </p>
             </Motion>
           )}
         </div>

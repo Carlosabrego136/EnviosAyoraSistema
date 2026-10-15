@@ -2658,3 +2658,6 @@ html.js .lx-rise:not(.is-in) .lx-ring__seg {
 .lx-saldo .lx-cta { grid-column: 1 / -1; justify-content: center; }
 .lx-saldo__body h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--navy); }
 .lx-saldo__body span { font-size: 12px; color: var(--mid); }
+
+.lx-sched__foot { grid-column: 1 / -1; margin: 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px; opacity: 0.92; }
+.lx-sched__foot strong { color: #fdba74; font-weight: 600; }
