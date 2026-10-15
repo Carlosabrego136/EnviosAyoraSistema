@@ -78,7 +78,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <header className="adm-head">
         <div>
           <h1>Hola, {user.name.split(' ')[0]}</h1>
-          <p>Administra el contenido del sitio y atiende las solicitudes.</p>
+          <p>Desde aquí controlas todo tu sitio. Pulsa una tarjeta o un atajo para empezar; en cada sección encontrarás una guía corta que te explica qué hacer.</p>
         </div>
       </header>
 
@@ -98,6 +98,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <small>{c.hint}</small>
           </Link>
         ))}
+      </section>
+
+      <section className="adm-panel card adm-start">
+        <h2>Primeros pasos</h2>
+        <p className="muted">Si es tu primera vez, sigue este orden. Cada paso te lleva a su pantalla.</p>
+        <ol className="adm-steps">
+          <li><span>1</span><div><strong>Carga tus tarifas</strong><p>Para que el cotizador muestre precios. <Link href="/admin/importar">Importar desde Excel</Link> o <Link href="/admin/c/tarifas/nuevo">agregar una por una</Link>.</p></div></li>
+          <li><span>2</span><div><strong>Agrega tus comerciantes</strong><p>Con su estatus y categoría. <Link href="/admin/c/comerciantes/nuevo">Agregar comerciante</Link>.</p></div></li>
+          <li><span>3</span><div><strong>Elige el Top 9 del mes</strong><p>Edita un comerciante y ponle su posición del 1 al 9. <Link href="/admin/c/comerciantes">Ver comerciantes</Link>.</p></div></li>
+          <li><span>4</span><div><strong>Publica tu mensaje con foto</strong><p>Tu espacio personal en el sitio. <Link href="/admin/c/mensajes/nuevo">Publicar mensaje</Link>.</p></div></li>
+          <li><span>5</span><div><strong>Mantén el estado al día</strong><p>Avisa si un servicio está limitado o en pausa. <Link href="/admin/c/servicios">Servicios y estado</Link>.</p></div></li>
+        </ol>
       </section>
 
       <section className="adm-panel card">

@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Cell, Flash } from '@/components/admin/Cell';
+import { GuideBox } from '@/components/admin/GuideBox';
 import { Icon } from '@/components/Icon';
+import { GUIDES } from '@/lib/admin-guides';
 import { adminTimezone, LABELS } from '@/lib/admin-utils';
 import { requirePageUser } from '@/lib/auth';
 import { listRows, type Row } from '@/lib/crud';
@@ -43,6 +45,9 @@ export default async function ResourceListPage({
     logger.error('admin.list.failed', err, { resource });
   }
 
+  const guide = GUIDES[def.key];
+  const newLabel = guide?.newLabel ?? `Agregar ${def.singular}`;
+
   return (
     <>
       <header className="adm-head">
@@ -56,11 +61,13 @@ export default async function ResourceListPage({
           )}
           {def.canCreate && (
             <Link className="btn btn--solid btn--sm" href={`/admin/c/${def.key}/nuevo`}>
-              <Icon name="check" size={14} /> Nuevo
+              <Icon name="edit" size={14} /> {newLabel}
             </Link>
           )}
         </div>
       </header>
+
+      {guide && <GuideBox guide={guide} />}
 
       {def.searchColumns && (
         <form className="adm-search" action={`/admin/c/${def.key}`} role="search">
@@ -89,9 +96,9 @@ export default async function ResourceListPage({
         </p>
       ) : rows.length === 0 ? (
         <div className="adm-empty card">
-          <p>{sp.q ? 'No hay resultados para esa búsqueda.' : 'Aún no hay registros.'}</p>
+          <p>{sp.q ? 'No hay resultados para esa búsqueda.' : 'Aún no hay nada aquí. Pulsa el botón naranja para agregar el primero.'}</p>
           {def.canCreate && (
-            <Link className="btn btn--ghost btn--sm" href={`/admin/c/${def.key}/nuevo`}>Crear el primero</Link>
+            <Link className="btn btn--solid btn--sm" href={`/admin/c/${def.key}/nuevo`}>{newLabel}</Link>
           )}
         </div>
       ) : (
@@ -120,15 +127,15 @@ export default async function ResourceListPage({
                     </td>
                   ))}
                   <td className="adm-table__actions">
-                    <Link className="link-arrow" href={`/admin/c/${def.key}/${row.id}`}>
-                      {def.canCreate ? 'Editar' : 'Abrir'} <Icon name="arrow" size={14} />
+                    <Link className="btn btn--ghost btn--sm" href={`/admin/c/${def.key}/${row.id}`} title={def.canCreate ? 'Editar, ocultar o eliminar' : 'Ver detalle'}>
+                      <Icon name="edit" size={14} /> {def.canCreate ? 'Editar' : 'Abrir'}
                     </Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="adm-table__count">{total} registro(s)</p>
+          <p className="adm-table__count">{total} registro(s). Pulsa <strong>{def.canCreate ? 'Editar' : 'Abrir'}</strong> en la fila para {def.canCreate ? 'cambiarla, ocultarla del sitio o eliminarla' : 'ver el detalle'}.</p>
         </div>
       )}
     </>

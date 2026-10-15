@@ -28,9 +28,9 @@ export const LABELS: Record<string, string> = {
 };
 
 export const FLASH_OK: Record<string, string> = {
-  creado: 'Registro creado correctamente.',
-  editado: 'Cambios guardados correctamente.',
-  eliminado: 'Registro eliminado. Quedó asentado en la bitácora.',
+  creado: 'Listo, se creó y ya se ve en el sitio (puede tardar hasta un minuto en actualizarse).',
+  editado: 'Listo, tus cambios se guardaron y ya se ven en el sitio (puede tardar hasta un minuto).',
+  eliminado: 'Listo, se eliminó. Quedó asentado en la bitácora.',
 };
 
 export const FLASH_ERROR: Record<string, string> = {

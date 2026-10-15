@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
 import { DeleteButton } from '@/components/admin/DeleteButton';
+import { GuideBox } from '@/components/admin/GuideBox';
 import { RecordForm } from '@/components/admin/RecordForm';
 import { Icon } from '@/components/Icon';
 import { adminTimezone } from '@/lib/admin-utils';
 import { requirePageUser } from '@/lib/auth';
+import { GUIDES, FIELD_HELP } from '@/lib/admin-guides';
 import { getRow } from '@/lib/crud';
 import { formatDateTime } from '@/lib/format';
 import { can } from '@/lib/permissions';
@@ -52,7 +54,7 @@ export default async function EditRecordPage({ params }: { params: Promise<{ res
         <div>
           <h1>{def.titleOf(row)}</h1>
           <p>
-            {def.canCreate ? 'Editando' : 'Detalle de'} {def.singular}
+            {def.canCreate ? 'Cambia lo que necesites y pulsa "Guardar cambios". Estás editando' : 'Detalle de'} {def.singular}
             {row.created_at ? ` · creado ${formatDateTime(row.created_at as Date, tz)}` : ''}
           </p>
         </div>
@@ -66,8 +68,9 @@ export default async function EditRecordPage({ params }: { params: Promise<{ res
         </div>
       </header>
 
+      {GUIDES[def.key] && <GuideBox guide={GUIDES[def.key]} title="Ayuda para esta pantalla" open={false} />}
       <section className="adm-panel card">
-        <RecordForm resourceKey={def.key} id={id} fields={def.fields} values={values} backHref={`/admin/c/${def.key}`} />
+        <RecordForm resourceKey={def.key} id={id} fields={def.fields.map((f) => ({ ...f, help: f.help ?? FIELD_HELP[f.name] }))} values={values} backHref={`/admin/c/${def.key}`} />
       </section>
     </>
   );

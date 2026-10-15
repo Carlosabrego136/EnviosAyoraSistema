@@ -13,7 +13,7 @@ export default async function SettingsPage() {
       <header className="adm-head">
         <div>
           <h1>Ajustes del sitio</h1>
-          <p>Marca, contacto, textos de la sección de comunidad y documentos legales. Los cambios se publican al guardar.</p>
+          <p>Aquí cambias los datos generales del sitio: WhatsApp, enlaces del grupo y redes, día y horario de recolección, textos de Misión y Visión, y los documentos legales. Cambia lo que necesites y pulsa "Guardar ajustes" al final de la página: se publica al guardar.</p>
         </div>
       </header>
       <section className="adm-panel card">

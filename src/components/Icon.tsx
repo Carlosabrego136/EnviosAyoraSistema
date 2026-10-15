@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 export type IconName =
+  | 'edit'
   | 'plane'
   | 'truck'
   | 'box'
@@ -151,6 +152,7 @@ const PATHS: Record<IconName, ReactNode> = {
   link: <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />,
   facebook: <path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8.5c0-.3.2-.5.5-.5z" />,
   tiktok: <path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5M14 4c.3 2.3 1.9 3.8 4.5 4" />,
+  edit: <path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />,
   copy: (
     <>
       <rect x="8" y="8" width="11" height="11" rx="2" />

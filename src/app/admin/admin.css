@@ -740,3 +740,19 @@ input:disabled {
 .adm-import .form-alert {
   white-space: pre-line;
 }
+
+/* ── Guías y ayudas ─────────────────────────────────────────── */
+.adm-guide { margin-top: 18px; border: 1px solid rgba(249, 115, 22, 0.45); background: rgba(249, 115, 22, 0.07); border-radius: 14px; }
+.adm-guide > summary { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; font-weight: 600; list-style: none; }
+.adm-guide > summary::-webkit-details-marker { display: none; }
+.adm-guide > summary::after { content: 'Mostrar / ocultar'; margin-left: auto; font-size: 12px; font-weight: 400; color: var(--muted); }
+.adm-guide__icon { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: #f97316; color: #fff; }
+.adm-guide__body { padding: 0 18px 16px; display: grid; gap: 10px; }
+.adm-guide__body p { margin: 0; }
+.adm-guide__body ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--muted); }
+.adm-guide__where { font-size: 13px; color: var(--muted); }
+.adm-start .adm-steps { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+.adm-steps li { display: flex; gap: 14px; align-items: flex-start; }
+.adm-steps li > span { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #f97316; color: #fff; font-weight: 700; }
+.adm-steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.adm-steps a { color: #fb9a2f; text-decoration: underline; }

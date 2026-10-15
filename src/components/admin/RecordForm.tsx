@@ -76,7 +76,10 @@ export function RecordForm({
             return (
               <div key={f.name} className="field field--check field--wide">
                 <input id={f.name} name={f.name} type="checkbox" defaultChecked={checked} />
-                <label htmlFor={f.name}>{f.label}</label>
+                <label htmlFor={f.name}>
+                  {f.label}
+                  {(f.help ?? '') && <small className="field__help"> — {f.help}</small>}
+                </label>
               </div>
             );
           }
@@ -133,7 +136,7 @@ export function RecordForm({
       </div>
 
       <div className="adm-form__actions">
-        <SaveButton label={id > 0 ? 'Guardar cambios' : 'Crear'} />
+        <SaveButton label={id > 0 ? 'Guardar cambios' : 'Guardar y publicar'} />
         <Link className="btn btn--ghost" href={backHref}>
           Cancelar
         </Link>
