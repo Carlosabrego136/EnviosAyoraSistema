@@ -89,8 +89,10 @@ function parseField(field: FieldDef, raw: FormDataEntryValue | null, errors: Rec
       return rounded;
     }
     case 'url': {
-      if (!/^https:\/\/[^\s]+$/.test(text)) errors[field.name] = `${label}: el enlace debe empezar con https://`;
-      return text;
+      // Se completa "facebook.com/…" pegado sin https; cualquier otro esquema (javascript:, http:, ftp:) se rechaza.
+      const url = !/^[a-z][a-z0-9+.-]*:/i.test(text) && /^(www\.|m\.)?(facebook|fb)\.com\//i.test(text) ? `https://${text}` : text;
+      if (!/^https:\/\/[^\s]+$/.test(url)) errors[field.name] = `${label}: el enlace debe empezar con https://`;
+      return url;
     }
     case 'date': {
       const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);

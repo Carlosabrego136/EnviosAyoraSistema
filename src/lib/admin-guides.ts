@@ -49,8 +49,8 @@ export const GUIDES: Record<string, Guide> = {
     where: 'Cotizador y página Cotizar',
   },
   comerciantes: {
-    what: 'El directorio de comerciantes. Aquí decides el estatus de cada uno y quiénes entran al Top 9 del mes.',
-    steps: ['Pulsa "Agregar comerciante" y llena nombre, categoría y estatus.', 'Estatus: Activo, Inactivo, Renovación pendiente o Riesgo.', 'Para el Top 9, edita al comerciante y elige su posición del 1 al 9. Cámbialos cada mes.', 'Quita la palomita de "Público" para ocultarlo del sitio sin borrarlo.'],
+    what: 'El directorio público de comerciantes. Solo se muestran su nombre, categoría, estatus y un botón "Visitar perfil" que lleva a su Facebook. No se publican teléfonos.',
+    steps: ['Pulsa "Agregar comerciante" y escribe su nombre (del negocio o de su Facebook), categoría, estatus y el enlace a su perfil.', 'Estatus: Activo, Pendiente de renovación, Baja o Riesgo. Usa la categoría "Variado" cuando no encaje en otra.', 'Para cargar muchos de golpe usa "Importar desde Excel".', 'Para el Top 9, edita al comerciante y elige su posición del 1 al 9. Cámbialos cada mes.', 'Quita la palomita de "Mostrar en el directorio" para ocultarlo sin borrarlo.'],
     newLabel: 'Agregar comerciante',
     where: 'Comerciantes y Top 9',
   },

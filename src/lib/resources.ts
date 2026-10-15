@@ -333,12 +333,12 @@ export const RESOURCES: Record<string, ResourceDef> = {
     singular: 'comerciante',
     plural: 'Comerciantes',
     description:
-      'Directorio público de comerciantes con su estatus. Asigna una posición del 1 al 9 para que aparezcan en el Top 9 del mes (cámbialas cada mes). También puedes cargar muchos de golpe con "Importar".',
+      'Directorio público de comerciantes: nombre, categoría, estatus y enlace a su perfil de Facebook. No se publican teléfonos ni datos personales. Asigna una posición del 1 al 9 para el Top 9 del mes (cámbialas cada mes). Puedes cargar muchos de golpe con "Importar".',
     orderBy: 'lower(name), id',
     canCreate: true,
     canDelete: true,
-    listLimit: 500,
-    searchColumns: ['name', 'category', 'zone', 'status'],
+    listLimit: 2000,
+    searchColumns: ['name', 'category', 'zone'],
     titleOf: (r) => s(r.name),
     columns: [
       { name: 'name', label: 'Comerciante' },
@@ -348,8 +348,8 @@ export const RESOURCES: Record<string, ResourceDef> = {
       { name: 'is_public', label: 'Público', kind: 'bool' },
     ],
     fields: [
-      { name: 'name', label: 'Nombre del comerciante o negocio', type: 'text', required: true, max: 100, wide: true },
-      { name: 'category', label: 'Categoría', type: 'text', required: true, max: 50, default: 'General', placeholder: 'Ropa, Calzado, Belleza…', help: 'Usa siempre el mismo nombre para que la búsqueda por categoría los agrupe.' },
+      { name: 'name', label: 'Nombre del comerciante o su nombre de Facebook', type: 'text', required: true, max: 100, wide: true, help: 'Solo el nombre del negocio o el nombre de su perfil de Facebook. No uses nombres personales.' },
+      { name: 'category', label: 'Categoría', type: 'text', required: true, max: 50, default: 'Variado', placeholder: 'Ropa, Calzado, Belleza…', help: 'Usa "Variado" cuando no encaje en una categoría principal. Escríbelas siempre igual para que el filtro las agrupe.' },
       {
         name: 'status',
         label: 'Estatus',
@@ -358,15 +358,13 @@ export const RESOURCES: Record<string, ResourceDef> = {
         default: 'activo',
         options: [
           { value: 'activo', label: 'Activo' },
-          { value: 'inactivo', label: 'Inactivo' },
-          { value: 'renovacion', label: 'Renovación pendiente' },
+          { value: 'renovacion', label: 'Pendiente de renovación' },
+          { value: 'inactivo', label: 'Baja' },
           { value: 'riesgo', label: 'Riesgo' },
         ],
       },
       { name: 'zone', label: 'Zona o ciudad', type: 'text', max: 60, placeholder: 'Tijuana' },
-      { name: 'description', label: 'Descripción para su perfil', type: 'textarea', max: 600, wide: true },
-      { name: 'whatsapp', label: 'WhatsApp del comerciante', type: 'text', max: 20, help: 'Opcional. Solo números; con 10 dígitos se agrega la lada de México. Se mostrará públicamente: pide su autorización.' },
-      { name: 'facebook_url', label: 'Facebook u otra red (enlace)', type: 'url', max: 200, placeholder: 'https://…' },
+      { name: 'facebook_url', label: 'Enlace a su perfil de Facebook', type: 'url', max: 250, wide: true, placeholder: 'https://www.facebook.com/…', help: 'Es a donde lleva el botón "Visitar perfil". Debe empezar con https://' },
       { name: 'photo_id', label: 'Foto o logo', type: 'image', wide: true, help: 'Opcional. JPG, PNG o WebP.' },
       { name: 'top_rank', label: 'Posición en el Top 9 del mes', type: 'number', min: 1, max: 9, help: 'Del 1 al 9. Déjalo vacío si no está en el Top 9. Cada posición solo puede tenerla un comerciante.' },
       { name: 'top_note', label: 'Nota en el Top 9', type: 'text', max: 80, placeholder: 'Ej. Más envíos del mes', wide: true },
@@ -375,15 +373,10 @@ export const RESOURCES: Record<string, ResourceDef> = {
     conflictField: { name: 'top_rank', message: 'Esa posición del Top 9 ya la tiene otro comerciante. Quítasela primero o elige otra.' },
     validate: (v) => {
       const errors: Record<string, string> = {};
-      const raw = s(v.whatsapp).replace(/\D/g, '');
-      if (raw) {
-        const full = raw.length === 10 ? `52${raw}` : raw;
-        if (full.length < 11 || full.length > 15) errors.whatsapp = 'Número no válido (10 dígitos o con lada del país).';
-        else v.whatsapp = full;
-      } else {
-        v.whatsapp = '';
-      }
-      if (s(v.facebook_url) && !/^https:\/\//.test(s(v.facebook_url))) errors.facebook_url = 'El enlace debe empezar con https://';
+      let fb = s(v.facebook_url).trim();
+      if (fb && !/^https?:\/\//i.test(fb) && /^(www\.|m\.)?(facebook|fb)\.com\//i.test(fb)) fb = `https://${fb}`;
+      if (fb && !/^https:\/\/[^\s]+$/i.test(fb)) errors.facebook_url = 'El enlace debe empezar con https:// y no llevar espacios.';
+      else v.facebook_url = fb;
       return errors;
     },
   },

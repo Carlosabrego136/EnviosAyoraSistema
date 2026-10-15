@@ -2661,3 +2661,10 @@ html.js .lx-rise:not(.is-in) .lx-ring__seg {
 
 .lx-sched__foot { grid-column: 1 / -1; margin: 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px; opacity: 0.92; }
 .lx-sched__foot strong { color: #fdba74; font-weight: 600; }
+
+/* Directorio: limpiar filtros y botón sin perfil */
+.lx-dir__clear { margin-left: 12px; padding: 4px 10px; font: 600 12px var(--font-body); color: #ea580c; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 99px; cursor: pointer; }
+.lx-dir__clear:hover { background: #ffedd5; }
+.lx-mcard__btn--off { background: #e2e8f0; color: var(--mid); cursor: default; }
+.lx-top9__link { cursor: pointer; }
+div.lx-top9__link { cursor: default; }

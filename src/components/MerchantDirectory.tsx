@@ -1,11 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { STATUS_META, STATUS_ORDER, type MerchantStatus, type PublicMerchant } from '@/lib/merchant-status';
 import { Icon } from './Icon';
 
 const PAGE = 24;
+
+/** Solo se abren enlaces https:// */
+const profileUrl = (u: string): string | null => (/^https:\/\/[^\s]+$/i.test(u) ? u : null);
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -70,7 +72,7 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
       <div className="lx-dir__stats" aria-label="Resumen del directorio">
         <div><strong>{merchants.length}</strong><span>comerciantes</span></div>
         <div><strong>{statusCounts.activo ?? 0}</strong><span>activos</span></div>
-        <div><strong>{statusCounts.renovacion ?? 0}</strong><span>renovación pendiente</span></div>
+        <div><strong>{statusCounts.renovacion ?? 0}</strong><span>pendientes de renovación</span></div>
         <div><strong>{statusCounts.riesgo ?? 0}</strong><span>en riesgo</span></div>
       </div>
 
@@ -81,7 +83,7 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
             type="search"
             value={q}
             onChange={(e) => { setQ(e.target.value); setShown(PAGE); }}
-            placeholder="Busca por nombre, categoría o zona…"
+            placeholder="Busca por nombre del vendedor…"
             aria-label="Buscar comerciante"
             maxLength={80}
           />
@@ -111,7 +113,14 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
       </div>
 
       <p className="lx-dir__count" aria-live="polite">
-        {filtered.length === 0 ? 'Sin resultados' : `${filtered.length} resultado${filtered.length === 1 ? '' : 's'}`}
+        {filtered.length === 0
+          ? 'Sin resultados'
+          : `${filtered.length.toLocaleString('es-MX')} de ${merchants.length.toLocaleString('es-MX')} comerciante${merchants.length === 1 ? '' : 's'}`}
+        {(q || category || status) && (
+          <button type="button" className="lx-dir__clear" onClick={() => { setQ(''); setCategory(''); setStatus(''); setShown(PAGE); }}>
+            ✕ Limpiar filtros
+          </button>
+        )}
       </p>
 
       {filtered.length === 0 ? (
@@ -132,9 +141,13 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
                 </div>
               </div>
               <StatusBadge status={m.status} />
-              <Link className="lx-mcard__btn" href={`/comerciantes/${m.id}`}>
-                Acceder al perfil <Icon name="arrow" size={14} />
-              </Link>
+              {profileUrl(m.facebook_url) ? (
+                <a className="lx-mcard__btn" href={profileUrl(m.facebook_url) as string} target="_blank" rel="noopener noreferrer">
+                  Visitar perfil <Icon name="arrow" size={14} />
+                </a>
+              ) : (
+                <span className="lx-mcard__btn lx-mcard__btn--off">Sin perfil público</span>
+              )}
             </li>
           ))}
         </ul>

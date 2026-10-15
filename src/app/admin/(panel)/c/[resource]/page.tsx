@@ -96,7 +96,7 @@ export default async function ResourceListPage({
         </p>
       ) : rows.length === 0 ? (
         <div className="adm-empty card">
-          <p>{sp.q ? 'No hay resultados para esa búsqueda.' : 'Aún no hay nada aquí. Pulsa el botón naranja para agregar el primero.'}</p>
+          <p>{sp.q ? 'No hay resultados para esa búsqueda.' : 'Aún no hay nada aquí. Pulsa el botón de arriba para agregar el primero.'}</p>
           {def.canCreate && (
             <Link className="btn btn--solid btn--sm" href={`/admin/c/${def.key}/nuevo`}>{newLabel}</Link>
           )}

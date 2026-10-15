@@ -32,7 +32,7 @@ export default async function NewRecordPage({ params }: { params: Promise<{ reso
       <header className="adm-head">
         <div>
           <h1>{guide?.newLabel ?? `Agregar ${def.singular}`}</h1>
-          <p>Llena los campos y pulsa el botón naranja de abajo para guardar. Los campos con * son obligatorios.</p>
+          <p>Llena los campos y pulsa el botón de abajo para guardar. Los campos con * son obligatorios.</p>
         </div>
       </header>
       {guide && <GuideBox guide={guide} title="Ayuda para llenar esta pantalla" open={false} />}

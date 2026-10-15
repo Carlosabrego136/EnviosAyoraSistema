@@ -128,10 +128,12 @@ export async function importRates(raw: string, replace: boolean, actor: Actor, c
 const STATUS_ALIASES: Record<string, string> = {
   activo: 'activo',
   activa: 'activo',
+  baja: 'inactivo',
   inactivo: 'inactivo',
   inactiva: 'inactivo',
   renovacion: 'renovacion',
   'renovacion pendiente': 'renovacion',
+  'pendiente de renovacion': 'renovacion',
   pendiente: 'renovacion',
   riesgo: 'riesgo',
 };
@@ -140,69 +142,97 @@ interface MerchantInput {
   name: string;
   category: string;
   status: string;
-  whatsapp: string;
+  facebook_url: string;
   zone: string;
-  description: string;
 }
 
+/** Acepta "facebook.com/…" sin https y lo completa; solo se permiten enlaces https. */
+function cleanProfileUrl(raw: string): string | null {
+  let u = raw.trim();
+  if (!u) return '';
+  if (!/^https?:\/\//i.test(u) && /^(www\.|m\.)?(facebook|fb)\.com\//i.test(u)) u = `https://${u}`;
+  return /^https:\/\/[^\s]{4,240}$/i.test(u) ? u : null;
+}
+
+/**
+ * Columnas (en este orden): nombre ; categoría ; estatus ; enlace de Facebook ; zona.
+ * Solo el nombre es obligatorio. No se importan teléfonos ni datos personales.
+ */
 export function parseMerchants(raw: string): MerchantInput[] {
   const table = parseTable(raw);
   if (table.length === 0) throw new ValidationError({ data: 'Pega la lista de comerciantes.' });
   if (table.length > MAX_ROWS + 1) throw new ValidationError({ data: `Máximo ${MAX_ROWS} filas por importación.` });
 
-  const out: MerchantInput[] = [];
+  const byName = new Map<string, MerchantInput>();
   const errors: string[] = [];
   table.forEach((cells, i) => {
     const lineNo = i + 1;
-    const [nameRaw = '', catRaw = '', statusRaw = '', waRaw = '', zoneRaw = '', descRaw = ''] = cells;
+    const [nameRaw = '', catRaw = '', statusRaw = '', fbRaw = '', zoneRaw = ''] = cells;
     if (i === 0 && /^(nombre|comerciante|vendedor)/.test(strip(nameRaw)) && /categ/.test(strip(catRaw))) return; // encabezado
     const name = cleanLine(nameRaw, 100);
     if (!name) return void errors.push(`Línea ${lineNo}: falta el nombre.`);
     const status = statusRaw ? STATUS_ALIASES[strip(statusRaw)] : 'activo';
-    if (!status) return void errors.push(`Línea ${lineNo}: estatus "${statusRaw}" no válido (activo, inactivo, renovación pendiente o riesgo).`);
-    let whatsapp = waRaw.replace(/\D/g, '');
-    if (whatsapp) {
-      if (whatsapp.length === 10) whatsapp = `52${whatsapp}`;
-      if (whatsapp.length < 11 || whatsapp.length > 15) return void errors.push(`Línea ${lineNo}: WhatsApp no válido.`);
-    }
-    out.push({
+    if (!status) return void errors.push(`Línea ${lineNo}: estatus "${cleanLine(statusRaw, 30)}" no válido (activo, pendiente de renovación, baja o riesgo).`);
+    const facebook_url = cleanProfileUrl(fbRaw);
+    if (facebook_url === null) return void errors.push(`Línea ${lineNo}: el enlace de Facebook debe empezar con https:// (columna 4).`);
+    // Si el nombre se repite en la lista, gana la última fila.
+    byName.set(name.toLowerCase(), {
       name,
-      category: cleanLine(catRaw, 50) || 'General',
+      category: cleanLine(catRaw, 50) || 'Variado',
       status,
-      whatsapp,
+      facebook_url,
       zone: cleanLine(zoneRaw, 60),
-      description: cleanMultiline(descRaw, 600),
     });
   });
   if (errors.length) lineErrors(errors);
-  if (out.length === 0) throw new ValidationError({ data: 'No se encontraron comerciantes.' });
-  return out;
+  if (byName.size === 0) throw new ValidationError({ data: 'No se encontraron comerciantes.' });
+  return Array.from(byName.values());
 }
 
+/** Importación en bloque (pocas consultas aunque sean miles de filas): inserta nuevos y actualiza existentes por nombre. */
 export async function importMerchants(raw: string, actor: Actor, ctx: RequestContext): Promise<{ created: number; updated: number }> {
   const rows = parseMerchants(raw);
   const result = await withTransaction(async (client) => {
-    let created = 0;
-    let updated = 0;
-    for (const m of rows) {
-      const found = await client.query<{ id: number }>('SELECT id FROM merchants WHERE lower(name) = lower($1) ORDER BY id LIMIT 1', [m.name]);
-      if (found.rows[0]) {
-        await client.query(
-          `UPDATE merchants SET category = $2, status = $3, zone = CASE WHEN $4 <> '' THEN $4 ELSE zone END,
-             whatsapp = CASE WHEN $5 <> '' THEN $5 ELSE whatsapp END,
-             description = CASE WHEN $6 <> '' THEN $6 ELSE description END
-           WHERE id = $1`,
-          [found.rows[0].id, m.category, m.status, m.zone, m.whatsapp, m.description],
-        );
-        updated += 1;
-      } else {
-        await client.query(
-          `INSERT INTO merchants (name, category, status, whatsapp, zone, description) VALUES ($1,$2,$3,$4,$5,$6)`,
-          [m.name, m.category, m.status, m.whatsapp, m.zone, m.description],
-        );
-        created += 1;
-      }
+    const names = rows.map((m) => m.name.toLowerCase());
+    const existing = await client.query<{ id: number; lname: string }>(
+      'SELECT DISTINCT ON (lower(name)) id, lower(name) AS lname FROM merchants WHERE lower(name) = ANY($1::text[]) ORDER BY lower(name), id',
+      [names],
+    );
+    const idByName = new Map(existing.rows.map((r) => [r.lname, Number(r.id)]));
+    const toUpdate = rows.filter((m) => idByName.has(m.name.toLowerCase()));
+    const toInsert = rows.filter((m) => !idByName.has(m.name.toLowerCase()));
+
+    if (toUpdate.length) {
+      await client.query(
+        `UPDATE merchants AS t SET category = v.category, status = v.status,
+                zone = CASE WHEN v.zone <> '' THEN v.zone ELSE t.zone END,
+                facebook_url = CASE WHEN v.facebook_url <> '' THEN v.facebook_url ELSE t.facebook_url END
+         FROM unnest($1::bigint[], $2::text[], $3::text[], $4::text[], $5::text[]) AS v(id, category, status, zone, facebook_url)
+         WHERE t.id = v.id`,
+        [
+          toUpdate.map((m) => idByName.get(m.name.toLowerCase())),
+          toUpdate.map((m) => m.category),
+          toUpdate.map((m) => m.status),
+          toUpdate.map((m) => m.zone),
+          toUpdate.map((m) => m.facebook_url),
+        ],
+      );
     }
+    if (toInsert.length) {
+      await client.query(
+        `INSERT INTO merchants (name, category, status, zone, facebook_url)
+         SELECT * FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[])`,
+        [
+          toInsert.map((m) => m.name),
+          toInsert.map((m) => m.category),
+          toInsert.map((m) => m.status),
+          toInsert.map((m) => m.zone),
+          toInsert.map((m) => m.facebook_url),
+        ],
+      );
+    }
+    const created = toInsert.length;
+    const updated = toUpdate.length;
     await writeAudit(client, {
       actor,
       action: 'comerciantes.import',

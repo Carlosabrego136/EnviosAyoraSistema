@@ -42,15 +42,16 @@ bajapack ; Baja Pack Express ; Baja California ; 0 ; 5 ; 120`}</pre>
           <Link className="link-arrow" href="/admin/c/comerciantes">Ver comerciantes cargados</Link>
         </div>
         <div className="adm-import">
-          <p className="muted">Una fila por comerciante, con estas columnas (solo el nombre es obligatorio):</p>
-          <pre>{`nombre ; categoría ; estatus ; whatsapp ; zona ; descripción`}</pre>
+          <p className="muted">Una fila por comerciante, con estas columnas en este orden (solo el nombre es obligatorio):</p>
+          <pre>{`nombre ; categoría ; estatus ; enlace de Facebook ; zona`}</pre>
           <p className="muted">
-            <strong>Estatus:</strong> activo, inactivo, renovación pendiente o riesgo (si lo dejas vacío se marca como activo). Si un nombre ya existe, se actualiza en
-            lugar de duplicarse. Todos se publican en el directorio; puedes ocultar uno editándolo.
+            <strong>Nombre:</strong> el del negocio o su nombre de Facebook. <strong>Categoría:</strong> si la dejas vacía se marca &quot;Variado&quot;.{' '}
+            <strong>Estatus:</strong> activo, pendiente de renovación, baja o riesgo (vacío = activo). <strong>Enlace:</strong> su perfil de Facebook, que debe empezar con https://.
+            Si un nombre ya existe, se actualiza en lugar de duplicarse. Puedes pegar cientos de filas de una vez.
           </p>
-          <pre>{`Bazar La Esperanza ; Ropa ; activo ; 6641234567 ; Tijuana
-Tienda Mary ; Belleza ; renovación pendiente ; ; Ensenada`}</pre>
-          <p className="muted">Antes de publicar sus datos de contacto, confirma que cada comerciante lo autorizó.</p>
+          <pre>{`Alaska León ; Saldos ; activo ; https://www.facebook.com/ejemplo ; Tijuana
+Tienda Mary ; Belleza ; pendiente de renovación ; https://www.facebook.com/ejemplo2 ; Ensenada`}</pre>
+          <p className="muted">No se publican teléfonos ni datos personales: solo el nombre, la categoría, el estatus y el enlace a su perfil público.</p>
         </div>
         <ImportForm kind="merchants" />
       </section>

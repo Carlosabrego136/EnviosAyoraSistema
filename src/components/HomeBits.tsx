@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import type { PublicMerchant } from '@/lib/merchant-status';
 import type { Service } from '@/lib/content';
 import { splitCarriers } from '@/lib/quote';
@@ -48,6 +47,20 @@ export function CarrierChips({ carriers }: { carriers: string }) {
   );
 }
 
+function TopNineBody({ m, i }: { m: PublicMerchant; i: number }) {
+  return (
+    <>
+      <span className="lx-top9__rank" aria-label={`Posición ${m.top_rank}`}>{String(m.top_rank ?? i + 1).padStart(2, '0')}</span>
+      <MerchantAvatar m={m} />
+      <span className="lx-top9__body">
+        <strong>{m.name}</strong>
+        <span>{m.top_note || m.category}</span>
+        <StatusBadge status={m.status} />
+      </span>
+    </>
+  );
+}
+
 /** Top 9 del mes: tarjetas numeradas, las tres primeras destacadas. */
 export function TopNine({ items, label }: { items: PublicMerchant[]; label: string }) {
   return (
@@ -63,16 +76,16 @@ export function TopNine({ items, label }: { items: PublicMerchant[]; label: stri
         <ol className="lx-top9__grid">
           {items.map((m, i) => (
             <Motion as="li" key={m.id} delay={i * 80} className={`lx-top9__item ${m.top_rank && m.top_rank <= 3 ? 'is-podium' : ''}`}>
-              <Link href={`/comerciantes/${m.id}`} className="lx-top9__link">
-                <span className="lx-top9__rank" aria-label={`Posición ${m.top_rank}`}>{String(m.top_rank ?? i + 1).padStart(2, '0')}</span>
-                <MerchantAvatar m={m} />
-                <span className="lx-top9__body">
-                  <strong>{m.name}</strong>
-                  <span>{m.top_note || m.category}</span>
-                  <StatusBadge status={m.status} />
-                </span>
-                <Icon name="arrow" size={16} />
-              </Link>
+              {/^https:\/\/\S+$/i.test(m.facebook_url) ? (
+                <a href={m.facebook_url} target="_blank" rel="noopener noreferrer" className="lx-top9__link" aria-label={`Visitar perfil de ${m.name}`}>
+                  <TopNineBody m={m} i={i} />
+                  <Icon name="arrow" size={16} />
+                </a>
+              ) : (
+                <div className="lx-top9__link">
+                  <TopNineBody m={m} i={i} />
+                </div>
+              )}
             </Motion>
           ))}
         </ol>
