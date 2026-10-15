@@ -13,7 +13,7 @@ import {
 } from '@/app/admin/actions';
 import { Icon } from '@/components/Icon';
 import type { ActionState } from '@/lib/errors';
-import type { SettingDef } from '@/lib/settings';
+import { WEEKDAY_OPTIONS, type SettingDef } from '@/lib/settings';
 
 const INITIAL: ActionState = {};
 
@@ -105,8 +105,21 @@ export function SettingsForm({ defs, values }: { defs: SettingDef[]; values: Rec
                   <label htmlFor={d.key}>{d.label}</label>
                   {d.type === 'textarea' ? (
                     <textarea id={d.key} name={d.key} rows={d.max > 1000 ? 14 : 4} maxLength={d.max} defaultValue={valueOf(d.key)} aria-invalid={Boolean(state.fieldErrors?.[d.key])} />
+                  ) : d.type === 'weekday' ? (
+                    <select id={d.key} name={d.key} defaultValue={valueOf(d.key)} aria-invalid={Boolean(state.fieldErrors?.[d.key])}>
+                      {WEEKDAY_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
                   ) : (
-                    <input id={d.key} name={d.key} type={d.type === 'email' ? 'email' : d.type === 'phone' ? 'tel' : 'text'} maxLength={d.max} defaultValue={valueOf(d.key)} aria-invalid={Boolean(state.fieldErrors?.[d.key])} />
+                    <input
+                      id={d.key}
+                      name={d.key}
+                      type={d.type === 'email' ? 'email' : d.type === 'phone' ? 'tel' : d.type === 'time' ? 'time' : d.type === 'url' ? 'url' : 'text'}
+                      maxLength={d.type === 'time' ? undefined : d.max}
+                      defaultValue={valueOf(d.key)}
+                      aria-invalid={Boolean(state.fieldErrors?.[d.key])}
+                    />
                   )}
                   {d.help && !state.fieldErrors?.[d.key] && <span className="field__help">{d.help}</span>}
                   <Err state={state} name={d.key} />

@@ -23,7 +23,11 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     { href: '/admin/c/solicitudes', label: 'Solicitudes', icon: 'users', badge: newLeads },
     { href: '/admin/c/comunicados', label: 'Comunicados', icon: 'megaphone' },
     { href: '/admin/c/servicios', label: 'Servicios y estado', icon: 'box' },
-    { href: '/admin/c/recolecciones', label: 'Recolecciones', icon: 'calendar' },
+    { href: '/admin/c/tarifas', label: 'Tarifas (cotizador)', icon: 'calc' },
+    { href: '/admin/c/comerciantes', label: 'Comerciantes y Top 9', icon: 'store' },
+    { href: '/admin/c/mensajes', label: 'Espacio personal', icon: 'star' },
+    { href: '/admin/importar', label: 'Importar desde Excel', icon: 'link' },
+    { href: '/admin/c/recolecciones', label: 'Recolecciones (excepciones)', icon: 'calendar' },
     { href: '/admin/c/slides', label: 'Carrusel', icon: 'play' },
     { href: '/admin/c/indicadores', label: 'Indicadores', icon: 'pin' },
   ];
@@ -37,7 +41,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
         <div className="adm-side__brand">
           <Image src="/emblem.png" alt="" width={351} height={452} className="adm-side__emblem" />
           <div>
-            <strong>FÉNIX</strong>
+            <strong>ENVÍOS AYORA</strong>
             <span>Panel de administración</span>
           </div>
         </div>

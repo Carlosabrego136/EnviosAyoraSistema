@@ -643,3 +643,100 @@ input:disabled {
   font-size: 13px;
   color: var(--muted);
 }
+
+/* ── Estatus de comerciantes y servicios ───────────────────── */
+.tag--activo,
+.tag--aereo {
+  color: var(--ok);
+  border-color: rgba(53, 214, 138, 0.4);
+  background: rgba(53, 214, 138, 0.08);
+}
+.tag--renovacion {
+  color: var(--warn);
+  border-color: rgba(245, 181, 61, 0.4);
+  background: rgba(245, 181, 61, 0.08);
+}
+.tag--riesgo {
+  color: var(--bad);
+  border-color: rgba(255, 100, 100, 0.35);
+  background: rgba(255, 100, 100, 0.07);
+}
+.tag--inactivo {
+  color: var(--muted);
+}
+.tag--terrestre,
+.tag--bajapack,
+.tag--tarimas {
+  color: #9fc1ff;
+  border-color: rgba(120, 165, 255, 0.4);
+  background: rgba(120, 165, 255, 0.1);
+}
+
+/* ── Subida de imagen ──────────────────────────────────────── */
+.adm-image {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.adm-image__preview {
+  width: 160px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 13px;
+}
+.adm-image__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.adm-image__actions {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.adm-image__actions input[type='file'] {
+  max-width: 100%;
+  font-size: 13px;
+  color: var(--silver-2);
+}
+
+/* ── Búsqueda del listado e importación ────────────────────── */
+.adm-search {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.adm-search input {
+  flex: 1;
+  min-width: 200px;
+}
+.adm-import {
+  display: grid;
+  gap: 14px;
+}
+.adm-import textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  min-height: 220px;
+  white-space: pre;
+}
+.adm-import pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.adm-import .form-alert {
+  white-space: pre-line;
+}

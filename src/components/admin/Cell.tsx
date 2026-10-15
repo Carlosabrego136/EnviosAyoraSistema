@@ -19,6 +19,10 @@ export function Cell({ column, value, timeZone }: { column: ColumnDef; value: un
     }
     case 'time':
       return <span>{formatTime(String(value))}</span>;
+    case 'money':
+      return <span>{new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(value))}</span>;
+    case 'kg':
+      return <span>{`${Number(value)} kg`}</span>;
     case 'datetime':
       return <span>{formatDateTime(value as Date | string, timeZone)}</span>;
     case 'badge': {

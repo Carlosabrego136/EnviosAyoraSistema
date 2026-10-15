@@ -156,7 +156,7 @@ export function LxChrome({
         </div>
       )}
 
-      {total > 0 && !noticeClosed && notices.length > 0 && activeId !== 'comunicados' && activeId !== 'comunidad' && (
+      {total > 0 && !noticeClosed && notices.length > 0 && activeId !== 'comunicados' && activeId !== 'ruta' && (
         <div
           className="lx-notice"
           role="region"

@@ -4,7 +4,7 @@ import { isDbConfigured, query, withTransaction } from './db';
 import { ValidationError } from './errors';
 import { logger } from './logger';
 import { cleanLine, cleanMultiline, type RequestContext } from './security';
-import { SETTING_DEFS, defaultSettings, safeTimezone, type SettingsMap } from './settings';
+import { SETTING_DEFS, WEEKDAY_OPTIONS, defaultSettings, safeTimezone, safeUrl, type SettingsMap } from './settings';
 
 /** Ajustes del sitio: valores guardados sobre los predeterminados. Si la BD falla, usa los predeterminados. */
 export async function loadSettings(): Promise<SettingsMap> {
@@ -37,6 +37,15 @@ function parseSettings(formData: FormData): SettingsMap {
     }
     if (def.type === 'timezone' && value && safeTimezone(value) !== value) {
       errors[def.key] = 'Zona horaria no válida (ej. America/Tijuana).';
+    }
+    if (def.type === 'url' && value && !safeUrl(value)) {
+      errors[def.key] = 'Enlace no válido: debe empezar con https://';
+    }
+    if (def.type === 'time' && !/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+      errors[def.key] = 'Hora no válida (formato 24 h, ej. 16:00).';
+    }
+    if (def.type === 'weekday' && !WEEKDAY_OPTIONS.some((o) => o.value === value)) {
+      errors[def.key] = 'Elige un día de la semana.';
     }
     if (!value && ['brand_name', 'whatsapp_number'].includes(def.key)) errors[def.key] = `${def.label} es obligatorio.`;
     values[def.key] = value;

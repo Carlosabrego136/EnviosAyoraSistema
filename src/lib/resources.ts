@@ -2,7 +2,7 @@
 // Todo nombre de tabla/columna usado en SQL sale de esta lista blanca (nunca del usuario).
 import { isSafeHref } from './security';
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'date' | 'time' | 'select';
+export type FieldType = 'text' | 'textarea' | 'number' | 'decimal' | 'checkbox' | 'date' | 'time' | 'select' | 'url' | 'image';
 
 export interface FieldDef {
   name: string;
@@ -21,12 +21,14 @@ export interface FieldDef {
   /** Solo se muestra (no se guarda) en el formulario de edición. */
   displayOnly?: boolean;
   wide?: boolean;
+  /** Solo 'decimal': cantidad de decimales permitidos (por defecto 2). */
+  step?: number;
 }
 
 export interface ColumnDef {
   name: string;
   label: string;
-  kind?: 'text' | 'bool' | 'date' | 'time' | 'badge' | 'datetime';
+  kind?: 'text' | 'bool' | 'date' | 'time' | 'badge' | 'datetime' | 'money' | 'kg';
 }
 
 export type PermissionKey = 'content' | 'leads';
@@ -45,8 +47,14 @@ export interface ResourceDef {
   canDelete: boolean;
   /** Texto principal de un registro para listados, avisos y bitácora. */
   titleOf: (row: Record<string, unknown>) => string;
-  /** Validaciones entre campos; devuelve errores por campo. */
+  /** Validaciones entre campos; devuelve errores por campo. Puede normalizar valores en el mismo objeto. */
   validate?: (values: Record<string, unknown>) => Record<string, string>;
+  /** Columnas donde busca el cuadro de búsqueda del listado. */
+  searchColumns?: string[];
+  /** Máximo de filas por listado (por defecto 200). */
+  listLimit?: number;
+  /** Error de campo cuando el guardado choca con un índice único (p. ej. posición del Top 9). */
+  conflictField?: { name: string; message: string };
 }
 
 const s = (v: unknown) => (v == null ? '' : String(v));
@@ -160,14 +168,30 @@ export const RESOURCES: Record<string, ResourceDef> = {
     columns: [
       { name: 'sort_order', label: 'Orden' },
       { name: 'name', label: 'Servicio' },
-      { name: 'eta_text', label: 'Tiempo estimado' },
+      { name: 'carriers', label: 'Paqueterías' },
       { name: 'status', label: 'Estado', kind: 'badge' },
       { name: 'is_active', label: 'Visible', kind: 'bool' },
     ],
     fields: [
       { name: 'name', label: 'Nombre', type: 'text', required: true, max: 60, wide: true },
       { name: 'description', label: 'Descripción', type: 'textarea', max: 240, wide: true },
-      { name: 'eta_text', label: 'Tiempo estimado', type: 'text', max: 60, placeholder: '1 a 3 días hábiles' },
+      {
+        name: 'slug',
+        label: 'Tipo de servicio (para el cotizador)',
+        type: 'select',
+        default: '',
+        options: [
+          { value: '', label: 'Ninguno (solo informativo)' },
+          { value: 'aereo', label: 'Aéreo' },
+          { value: 'terrestre', label: 'Terrestre' },
+          { value: 'bajapack', label: 'Bajapack' },
+          { value: 'tarimas', label: 'Gran volumen · Tarimas' },
+        ],
+        help: 'Enlaza este servicio con las tarifas del tabulador.',
+      },
+      { name: 'carriers', label: 'Paqueterías', type: 'text', max: 120, placeholder: 'FedEx, DHL, Estafeta', help: 'Separadas por coma. Se muestran como etiquetas.', wide: true },
+      { name: 'coverage', label: 'Cobertura', type: 'text', max: 60, placeholder: 'Todo México' },
+      { name: 'eta_text', label: 'Tiempo estimado (opcional)', type: 'text', max: 60, placeholder: '1 a 3 días hábiles' },
       {
         name: 'icon',
         label: 'Ícono',
@@ -181,6 +205,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
           { value: 'mail', label: 'Correo' },
           { value: 'pin', label: 'Ubicación' },
           { value: 'shield', label: 'Escudo' },
+          { value: 'pallet', label: 'Tarimas' },
         ],
       },
       {
@@ -206,8 +231,9 @@ export const RESOURCES: Record<string, ResourceDef> = {
     table: 'pickups',
     permission: 'content',
     singular: 'recolección',
-    plural: 'Calendario de recolecciones',
-    description: 'Fechas y horarios en los que recibes mercancía. El sitio muestra solo las próximas.',
+    plural: 'Recolecciones (excepciones)',
+    description:
+      'El día y horario fijo se define en Ajustes del sitio y el sitio calcula solo las próximas fechas. Aquí solo registras excepciones: un horario distinto, un día extra, o desmarca "Visible" para cancelar una fecha.',
     orderBy: 'pickup_date DESC, start_time ASC',
     canCreate: true,
     canDelete: true,
@@ -233,6 +259,160 @@ export const RESOURCES: Record<string, ResourceDef> = {
       }
       return errors;
     },
+  },
+
+  tarifas: {
+    key: 'tarifas',
+    table: 'rates',
+    permission: 'content',
+    singular: 'tarifa',
+    plural: 'Tarifas (cotizador)',
+    description:
+      'Tabulador de precios que usa el cotizador del sitio. Cada fila es un rango de peso para un servicio, paquetería y destino. También puedes cargar muchas filas de golpe con "Importar".',
+    orderBy: 'service_slug, carrier, destination, weight_from, weight_to',
+    canCreate: true,
+    canDelete: true,
+    listLimit: 500,
+    searchColumns: ['carrier', 'destination', 'service_slug', 'note'],
+    titleOf: (r) => `${s(r.service_slug)} · ${s(r.carrier) || 'general'} · ${s(r.destination) || 'todo destino'} · ${s(r.weight_from)}–${s(r.weight_to)} kg`,
+    columns: [
+      { name: 'service_slug', label: 'Servicio', kind: 'badge' },
+      { name: 'carrier', label: 'Paquetería' },
+      { name: 'destination', label: 'Destino' },
+      { name: 'weight_from', label: 'Desde', kind: 'kg' },
+      { name: 'weight_to', label: 'Hasta', kind: 'kg' },
+      { name: 'price', label: 'Precio', kind: 'money' },
+      { name: 'is_active', label: 'Visible', kind: 'bool' },
+    ],
+    fields: [
+      {
+        name: 'service_slug',
+        label: 'Servicio',
+        type: 'select',
+        required: true,
+        default: 'terrestre',
+        options: [
+          { value: 'aereo', label: 'Aéreo' },
+          { value: 'terrestre', label: 'Terrestre' },
+          { value: 'bajapack', label: 'Bajapack' },
+          { value: 'tarimas', label: 'Gran volumen · Tarimas' },
+        ],
+      },
+      { name: 'carrier', label: 'Paquetería', type: 'text', max: 60, placeholder: 'FedEx', help: 'Déjalo vacío si el precio aplica a cualquier paquetería del servicio.' },
+      { name: 'destination', label: 'Destino o zona', type: 'text', max: 80, placeholder: 'Zona 1, Baja California, CDMX…', help: 'Déjalo vacío si el precio aplica a cualquier destino.' },
+      { name: 'weight_from', label: 'Peso desde (kg)', type: 'decimal', required: true, min: 0, max: 100000, default: 0 },
+      { name: 'weight_to', label: 'Peso hasta (kg)', type: 'decimal', required: true, min: 0.01, max: 100000 },
+      { name: 'price', label: 'Precio (MXN)', type: 'decimal', required: true, min: 0, max: 10000000 },
+      {
+        name: 'price_type',
+        label: 'Tipo de precio',
+        type: 'select',
+        required: true,
+        default: 'fixed',
+        options: [
+          { value: 'fixed', label: 'Precio fijo para el rango de peso' },
+          { value: 'per_kg', label: 'Precio por kilo (se multiplica por los kg, redondeado hacia arriba)' },
+        ],
+        wide: true,
+      },
+      { name: 'note', label: 'Nota (opcional)', type: 'text', max: 120, wide: true },
+      { name: 'sort_order', label: 'Orden', type: 'number', min: 0, max: 9999, default: 0 },
+      { name: 'is_active', label: 'Visible en el sitio', type: 'checkbox', default: true },
+    ],
+    validate: (v) => {
+      const errors: Record<string, string> = {};
+      if (Number(v.weight_to) < Number(v.weight_from)) errors.weight_to = 'El peso final debe ser mayor o igual al inicial.';
+      return errors;
+    },
+  },
+
+  comerciantes: {
+    key: 'comerciantes',
+    table: 'merchants',
+    permission: 'content',
+    singular: 'comerciante',
+    plural: 'Comerciantes',
+    description:
+      'Directorio público de comerciantes con su estatus. Asigna una posición del 1 al 9 para que aparezcan en el Top 9 del mes (cámbialas cada mes). También puedes cargar muchos de golpe con "Importar".',
+    orderBy: 'lower(name), id',
+    canCreate: true,
+    canDelete: true,
+    listLimit: 500,
+    searchColumns: ['name', 'category', 'zone', 'status'],
+    titleOf: (r) => s(r.name),
+    columns: [
+      { name: 'name', label: 'Comerciante' },
+      { name: 'category', label: 'Categoría' },
+      { name: 'status', label: 'Estatus', kind: 'badge' },
+      { name: 'top_rank', label: 'Top 9' },
+      { name: 'is_public', label: 'Público', kind: 'bool' },
+    ],
+    fields: [
+      { name: 'name', label: 'Nombre del comerciante o negocio', type: 'text', required: true, max: 100, wide: true },
+      { name: 'category', label: 'Categoría', type: 'text', required: true, max: 50, default: 'General', placeholder: 'Ropa, Calzado, Belleza…', help: 'Usa siempre el mismo nombre para que la búsqueda por categoría los agrupe.' },
+      {
+        name: 'status',
+        label: 'Estatus',
+        type: 'select',
+        required: true,
+        default: 'activo',
+        options: [
+          { value: 'activo', label: 'Activo' },
+          { value: 'inactivo', label: 'Inactivo' },
+          { value: 'renovacion', label: 'Renovación pendiente' },
+          { value: 'riesgo', label: 'Riesgo' },
+        ],
+      },
+      { name: 'zone', label: 'Zona o ciudad', type: 'text', max: 60, placeholder: 'Tijuana' },
+      { name: 'description', label: 'Descripción para su perfil', type: 'textarea', max: 600, wide: true },
+      { name: 'whatsapp', label: 'WhatsApp del comerciante', type: 'text', max: 20, help: 'Opcional. Solo números; con 10 dígitos se agrega la lada de México. Se mostrará públicamente: pide su autorización.' },
+      { name: 'facebook_url', label: 'Facebook u otra red (enlace)', type: 'url', max: 200, placeholder: 'https://…' },
+      { name: 'photo_id', label: 'Foto o logo', type: 'image', wide: true, help: 'Opcional. JPG, PNG o WebP.' },
+      { name: 'top_rank', label: 'Posición en el Top 9 del mes', type: 'number', min: 1, max: 9, help: 'Del 1 al 9. Déjalo vacío si no está en el Top 9. Cada posición solo puede tenerla un comerciante.' },
+      { name: 'top_note', label: 'Nota en el Top 9', type: 'text', max: 80, placeholder: 'Ej. Más envíos del mes', wide: true },
+      { name: 'is_public', label: 'Mostrar en el directorio público', type: 'checkbox', default: true },
+    ],
+    conflictField: { name: 'top_rank', message: 'Esa posición del Top 9 ya la tiene otro comerciante. Quítasela primero o elige otra.' },
+    validate: (v) => {
+      const errors: Record<string, string> = {};
+      const raw = s(v.whatsapp).replace(/\D/g, '');
+      if (raw) {
+        const full = raw.length === 10 ? `52${raw}` : raw;
+        if (full.length < 11 || full.length > 15) errors.whatsapp = 'Número no válido (10 dígitos o con lada del país).';
+        else v.whatsapp = full;
+      } else {
+        v.whatsapp = '';
+      }
+      if (s(v.facebook_url) && !/^https:\/\//.test(s(v.facebook_url))) errors.facebook_url = 'El enlace debe empezar con https://';
+      return errors;
+    },
+  },
+
+  mensajes: {
+    key: 'mensajes',
+    table: 'owner_posts',
+    permission: 'content',
+    singular: 'mensaje',
+    plural: 'Espacio personal',
+    description:
+      'Tu mensaje con foto de tu trabajo o de un evento con tu equipo. El sitio muestra el más reciente que esté visible; publica uno nuevo cuando quieras actualizarlo.',
+    orderBy: 'published_on DESC, id DESC',
+    canCreate: true,
+    canDelete: true,
+    titleOf: (r) => s(r.title),
+    columns: [
+      { name: 'published_on', label: 'Fecha', kind: 'date' },
+      { name: 'title', label: 'Título' },
+      { name: 'is_active', label: 'Visible', kind: 'bool' },
+    ],
+    fields: [
+      { name: 'title', label: 'Título', type: 'text', required: true, max: 100, wide: true },
+      { name: 'body', label: 'Mensaje', type: 'textarea', required: true, max: 1500, wide: true },
+      { name: 'photo_id', label: 'Foto', type: 'image', wide: true, help: 'Foto personal, de tu trabajo o de un evento con tu equipo. JPG, PNG o WebP.' },
+      { name: 'author', label: 'Firma', type: 'text', max: 80, placeholder: 'Rafael y Fany', help: 'Opcional. Aparece al final del mensaje.' },
+      { name: 'published_on', label: 'Fecha', type: 'date', required: true, default: 'today' },
+      { name: 'is_active', label: 'Visible en el sitio', type: 'checkbox', default: true },
+    ],
   },
 
   solicitudes: {

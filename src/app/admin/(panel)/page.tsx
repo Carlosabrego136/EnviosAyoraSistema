@@ -32,6 +32,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   let counts: Counts = { new_leads: 0, announcements: 0, services: 0, pickups: 0 };
   let recent: AuditRow[] = [];
+  let merchants = { active: 0, attention: 0, rates: 0 };
   let loadError = false;
   try {
     const rows = await query<Counts>(
@@ -43,6 +44,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       [todayISO(tz)],
     );
     counts = rows[0] ?? counts;
+    try {
+      const extra = await query<{ active: number; attention: number; rates: number }>(
+        `SELECT (SELECT count(*) FROM merchants WHERE status = 'activo')::int AS active,
+                (SELECT count(*) FROM merchants WHERE status IN ('riesgo','renovacion'))::int AS attention,
+                (SELECT count(*) FROM rates WHERE is_active)::int AS rates`,
+      );
+      merchants = extra[0] ?? merchants;
+    } catch (err) {
+      logger.warn('admin.dashboard.extra_failed', { error: String(err) });
+    }
     if (can(user.role, 'audit.view')) {
       recent = await query<AuditRow>(
         'SELECT id, created_at, actor_name, actor_role, summary, action FROM audit_log ORDER BY id DESC LIMIT 8',
@@ -58,6 +69,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     { label: 'Próximas recolecciones', value: counts.pickups, href: '/admin/c/recolecciones', icon: 'calendar', hint: 'Fechas publicadas' },
     { label: 'Comunicados visibles', value: counts.announcements, href: '/admin/c/comunicados', icon: 'megaphone', hint: 'En el sitio' },
     { label: 'Servicios visibles', value: counts.services, href: '/admin/c/servicios', icon: 'box', hint: 'En el sitio' },
+    { label: 'Comerciantes activos', value: merchants.active, href: '/admin/c/comerciantes', icon: 'store', hint: `${merchants.attention} por revisar` },
+    { label: 'Tarifas cargadas', value: merchants.rates, href: '/admin/c/tarifas', icon: 'calc', hint: 'En el cotizador' },
   ];
 
   return (
@@ -93,6 +106,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <Link className="btn btn--ghost btn--sm" href="/admin/c/comunicados/nuevo">Publicar comunicado</Link>
           <Link className="btn btn--ghost btn--sm" href="/admin/c/recolecciones/nuevo">Agregar recolección</Link>
           <Link className="btn btn--ghost btn--sm" href="/admin/c/servicios">Cambiar estado de un servicio</Link>
+          <Link className="btn btn--ghost btn--sm" href="/admin/c/mensajes/nuevo">Publicar mensaje personal</Link>
+          <Link className="btn btn--ghost btn--sm" href="/admin/c/comerciantes">Actualizar el Top 9</Link>
+          <Link className="btn btn--ghost btn--sm" href="/admin/importar">Importar tarifas o comerciantes</Link>
           {can(user.role, 'settings.write') && <Link className="btn btn--ghost btn--sm" href="/admin/ajustes">Ajustes del sitio</Link>}
         </div>
       </section>

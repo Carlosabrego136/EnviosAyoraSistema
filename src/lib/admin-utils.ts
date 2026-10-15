@@ -17,6 +17,14 @@ export const LABELS: Record<string, string> = {
   contacto: 'Consulta',
   admin: 'Administrador',
   worker: 'Trabajador',
+  activo: 'Activo',
+  inactivo: 'Inactivo',
+  renovacion: 'Renovación pendiente',
+  riesgo: 'Riesgo',
+  aereo: 'Aéreo',
+  terrestre: 'Terrestre',
+  bajapack: 'Bajapack',
+  tarimas: 'Tarimas',
 };
 
 export const FLASH_OK: Record<string, string> = {

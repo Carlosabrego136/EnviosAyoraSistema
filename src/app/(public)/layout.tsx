@@ -13,9 +13,11 @@ export const viewport: Viewport = { themeColor: '#ffffff', colorScheme: 'light' 
 const LINKS: LxLink[] = [
   { href: '/', label: 'Inicio', section: 'inicio' },
   { href: '/#servicios', label: 'Servicios', section: 'servicios' },
-  { href: '/#estado', label: 'Estado', section: 'estado' },
+  { href: '/#cotizar', label: 'Cotizar', section: 'cotizar' },
+  { href: '/#comerciantes', label: 'Comerciantes', section: 'comerciantes' },
+  { href: '/rastreo', label: 'Rastrear' },
   { href: '/#comunicados', label: 'Comunicados', section: 'comunicados' },
-  { href: '/#comunidad', label: 'Comunidad', section: 'comunidad' },
+  { href: '/#ruta', label: 'Ruta del Saldo', section: 'ruta' },
 ];
 
 export default async function PublicLayout({ children }: { children: ReactNode }) {

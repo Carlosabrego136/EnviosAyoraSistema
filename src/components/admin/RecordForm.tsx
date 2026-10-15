@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { saveRecordAction } from '@/app/admin/actions';
 import { Icon } from '@/components/Icon';
+import { ImageInput } from './ImageInput';
 import type { ActionState } from '@/lib/errors';
 import type { FieldDef } from '@/lib/resources';
 
@@ -80,6 +81,19 @@ export function RecordForm({
             );
           }
 
+          if (f.type === 'image') {
+            return (
+              <ImageInput
+                key={f.name}
+                name={f.name}
+                label={f.label}
+                help={f.help}
+                currentId={Number(values[f.name]) || 0}
+                error={err}
+              />
+            );
+          }
+
           return (
             <div key={f.name} className={`field ${wide ? 'field--wide' : ''}`}>
               <label htmlFor={f.name}>
@@ -100,11 +114,13 @@ export function RecordForm({
                 <input
                   id={f.name}
                   name={f.name}
-                  type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : f.type === 'time' ? 'time' : 'text'}
+                  type={f.type === 'number' || f.type === 'decimal' ? 'number' : f.type === 'date' ? 'date' : f.type === 'time' ? 'time' : f.type === 'url' ? 'url' : 'text'}
+                  step={f.type === 'decimal' ? '0.01' : undefined}
+                  inputMode={f.type === 'decimal' ? 'decimal' : undefined}
                   defaultValue={valueOf(f)}
-                  maxLength={f.type === 'text' ? f.max : undefined}
-                  min={f.type === 'number' ? f.min : undefined}
-                  max={f.type === 'number' ? f.max : undefined}
+                  maxLength={f.type === 'text' || f.type === 'url' ? f.max : undefined}
+                  min={f.type === 'number' || f.type === 'decimal' ? f.min : undefined}
+                  max={f.type === 'number' || f.type === 'decimal' ? f.max : undefined}
                   placeholder={f.placeholder}
                   aria-invalid={Boolean(err)}
                 />

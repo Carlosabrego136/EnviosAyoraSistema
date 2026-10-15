@@ -20,7 +20,7 @@ export default async function ResourceListPage({
   searchParams,
 }: {
   params: Promise<{ resource: string }>;
-  searchParams: Promise<{ ok?: string; error?: string; estado?: string }>;
+  searchParams: Promise<{ ok?: string; error?: string; estado?: string; q?: string }>;
 }) {
   const { resource } = await params;
   const sp = await searchParams;
@@ -37,7 +37,7 @@ export default async function ResourceListPage({
   let total = 0;
   let failed = false;
   try {
-    ({ rows, total } = await listRows(def, { limit: 200, filters }));
+    ({ rows, total } = await listRows(def, { limit: def.listLimit ?? 200, filters, search: sp.q }));
   } catch (err) {
     failed = true;
     logger.error('admin.list.failed', err, { resource });
@@ -50,12 +50,25 @@ export default async function ResourceListPage({
           <h1>{def.plural}</h1>
           <p>{def.description}</p>
         </div>
-        {def.canCreate && (
-          <Link className="btn btn--solid btn--sm" href={`/admin/c/${def.key}/nuevo`}>
-            <Icon name="check" size={14} /> Nuevo
-          </Link>
-        )}
+        <div className="adm-head__actions">
+          {(def.key === 'tarifas' || def.key === 'comerciantes') && (
+            <Link className="btn btn--ghost btn--sm" href="/admin/importar">Importar desde Excel</Link>
+          )}
+          {def.canCreate && (
+            <Link className="btn btn--solid btn--sm" href={`/admin/c/${def.key}/nuevo`}>
+              <Icon name="check" size={14} /> Nuevo
+            </Link>
+          )}
+        </div>
       </header>
+
+      {def.searchColumns && (
+        <form className="adm-search" action={`/admin/c/${def.key}`} role="search">
+          <input type="search" name="q" defaultValue={sp.q ?? ''} placeholder="Buscar…" aria-label="Buscar" maxLength={80} />
+          <button type="submit" className="btn btn--ghost btn--sm">Buscar</button>
+          {sp.q && <Link className="btn btn--ghost btn--sm" href={`/admin/c/${def.key}`}>Limpiar</Link>}
+        </form>
+      )}
 
       <Flash ok={sp.ok} error={sp.error} />
 
@@ -76,7 +89,7 @@ export default async function ResourceListPage({
         </p>
       ) : rows.length === 0 ? (
         <div className="adm-empty card">
-          <p>Aún no hay registros.</p>
+          <p>{sp.q ? 'No hay resultados para esa búsqueda.' : 'Aún no hay registros.'}</p>
           {def.canCreate && (
             <Link className="btn btn--ghost btn--sm" href={`/admin/c/${def.key}/nuevo`}>Crear el primero</Link>
           )}

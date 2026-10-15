@@ -30,12 +30,15 @@ export interface Announcement {
 }
 export interface Service {
   id: number;
+  slug: string;
   name: string;
   description: string;
   eta_text: string;
   icon: string;
   status: 'active' | 'limited' | 'paused';
   status_note: string;
+  carriers: string;
+  coverage: string;
 }
 export interface Pickup {
   id: number;
@@ -67,16 +70,49 @@ function weekdayOf(iso: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
+interface PickupRow extends Pickup {
+  is_active: boolean;
+}
+
+/**
+ * Próximas recolecciones: el día fijo semanal sale de los Ajustes (por defecto, viernes 10:00–16:00).
+ * La tabla de recolecciones solo guarda excepciones: una fecha con registro activo reemplaza el horario
+ * normal (o agrega un día extra) y una fecha con registros solo inactivos queda cancelada.
+ */
+export function buildPickups(settings: SettingsMap, today: string, rows: PickupRow[]): Pickup[] {
+  const weekday = Number(settings.pickup_weekday);
+  const start = settings.pickup_start || '10:00';
+  const end = settings.pickup_end || '16:00';
+  const note = settings.pickup_note || 'Recolección general';
+
+  const byDate = new Map<string, PickupRow[]>();
+  for (const r of rows) {
+    const list = byDate.get(r.pickup_date) ?? [];
+    list.push(r);
+    byDate.set(r.pickup_date, list);
+  }
+
+  const out: Pickup[] = [];
+  let virtualId = -1;
+  const handled = new Set<string>();
+
+  for (let i = 0; i < 70; i += 1) {
+    const date = addDays(today, i);
+    const custom = byDate.get(date);
+    if (custom) {
+      handled.add(date);
+      for (const r of custom.filter((x) => x.is_active)) out.push(r);
+      continue; // con excepción, no se agrega el horario normal
+    }
+    if (Number.isInteger(weekday) && weekdayOf(date) === weekday) {
+      out.push({ id: virtualId--, pickup_date: date, start_time: start, end_time: end, note });
+    }
+  }
+  return out.sort((a, b) => a.pickup_date.localeCompare(b.pickup_date) || a.start_time.localeCompare(b.start_time)).slice(0, 6);
+}
+
 /** Contenido de respaldo (mismo que el seed) para cuando la base de datos aún no está conectada. */
 function fallbackContent(settings: SettingsMap, today: string): SiteContent {
-  const pickups: Pickup[] = [];
-  let n = 1;
-  for (let i = 0; i < 21; i += 1) {
-    const date = addDays(today, i);
-    const wd = weekdayOf(date);
-    if (wd === 5) pickups.push({ id: n++, pickup_date: date, start_time: '11:00', end_time: '16:00', note: 'Recolección general' });
-    if (wd === 6) pickups.push({ id: n++, pickup_date: date, start_time: '10:00', end_time: '13:00', note: 'Recolección general' });
-  }
   return {
     settings,
     today,
@@ -91,9 +127,11 @@ function fallbackContent(settings: SettingsMap, today: string): SiteContent {
       body: a.body,
       published_on: addDays(today, -a.days_ago),
     })),
-    pickups: pickups.slice(0, 6),
+    pickups: buildPickups(settings, today, []),
   };
 }
+
+type ServiceRow = Omit<Service, 'slug' | 'carriers' | 'coverage'> & Partial<Pick<Service, 'slug' | 'carriers' | 'coverage'>>;
 
 /**
  * Contenido público del sitio. Si la base de datos no está configurada o falla, devuelve el
@@ -107,7 +145,7 @@ export async function getSiteContent(): Promise<SiteContent> {
   if (!isDbConfigured()) return fallbackContent(settings, today);
 
   try {
-    const [slides, stats, announcements, services, pickups] = await Promise.all([
+    const [slides, stats, announcements, services, pickupRows] = await Promise.all([
       query<Slide>(
         `SELECT id, eyebrow, title, subtitle, body, cta_label, cta_href
          FROM slides WHERE is_active ORDER BY sort_order, id`,
@@ -117,19 +155,26 @@ export async function getSiteContent(): Promise<SiteContent> {
         `SELECT id, category, title, body, published_on::text AS published_on
          FROM announcements WHERE is_active ORDER BY published_on DESC, id DESC LIMIT 30`,
       ),
-      query<Service>(
-        `SELECT id, name, description, eta_text, icon, status, status_note
-         FROM services WHERE is_active ORDER BY sort_order, id`,
-      ),
-      query<Pickup>(
+      // SELECT * para tolerar bases que aún no aplican la migración 002 (slug/carriers/coverage).
+      query<ServiceRow>(`SELECT * FROM services WHERE is_active ORDER BY sort_order, id`),
+      query<PickupRow>(
         `SELECT id, pickup_date::text AS pickup_date, to_char(start_time, 'HH24:MI') AS start_time,
-                to_char(end_time, 'HH24:MI') AS end_time, note
-         FROM pickups WHERE is_active AND pickup_date >= $1::date
-         ORDER BY pickup_date, start_time LIMIT 6`,
+                to_char(end_time, 'HH24:MI') AS end_time, note, is_active
+         FROM pickups WHERE pickup_date >= $1::date
+         ORDER BY pickup_date, start_time LIMIT 80`,
         [today],
       ),
     ]);
-    return { settings, today, source: 'database', slides, stats, announcements, services, pickups };
+    return {
+      settings,
+      today,
+      source: 'database',
+      slides,
+      stats,
+      announcements,
+      services: services.map((s) => ({ ...s, slug: s.slug ?? '', carriers: s.carriers ?? '', coverage: s.coverage ?? '' })),
+      pickups: buildPickups(settings, today, pickupRows),
+    };
   } catch (err) {
     logger.error('content.load_failed_using_fallback', err);
     return fallbackContent(settings, today);

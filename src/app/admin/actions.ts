@@ -5,7 +5,7 @@ import { redirect, unstable_rethrow } from 'next/navigation';
 import { writeAudit } from '@/lib/audit';
 import { destroySession, getCurrentUser, requireUser } from '@/lib/auth';
 import { createRow, deleteRow, parseForm, updateRow } from '@/lib/crud';
-import { withTransaction } from '@/lib/db';
+import { query, withTransaction } from '@/lib/db';
 import {
   AppError,
   ForbiddenError,
@@ -18,6 +18,8 @@ import {
 import { logger } from '@/lib/logger';
 import type { Permission } from '@/lib/permissions';
 import { getResource, type ResourceDef } from '@/lib/resources';
+import { importMerchants, importRates } from '@/lib/import';
+import { storeImage } from '@/lib/media';
 import { getRequestContext } from '@/lib/security';
 import { saveSettings } from '@/lib/site-settings';
 import { authenticate, changeOwnPassword, createUser, resetUserPassword, updateUser } from '@/lib/users';
@@ -100,8 +102,25 @@ export async function saveRecordAction(
     const values = parseForm(def, formData, editing);
     const ctx = await getRequestContext();
 
-    if (editing) await updateRow(def, id, values, actorOf(user), ctx);
-    else await createRow(def, values, actorOf(user), ctx);
+    // Imágenes: se guardan aparte; si el guardado falla después, se eliminan para no dejar archivos huérfanos.
+    const stored: number[] = [];
+    try {
+      for (const f of def.fields.filter((x) => x.type === 'image')) {
+        const file = formData.get(f.name);
+        if (file instanceof File && file.size > 0) {
+          const mediaId = await storeImage(file, user.id, f.name, f.label);
+          stored.push(mediaId);
+          values[f.name] = mediaId;
+        } else if (editing && formData.get(`${f.name}__remove`) === '1') {
+          values[f.name] = null;
+        }
+      }
+      if (editing) await updateRow(def, id, values, actorOf(user), ctx);
+      else await createRow(def, values, actorOf(user), ctx);
+    } catch (err) {
+      for (const mediaId of stored) await query('DELETE FROM media WHERE id = $1', [mediaId]).catch(() => undefined);
+      throw err;
+    }
 
     refreshPublicSite();
     destination = `/admin/c/${def.key}?ok=${editing ? 'editado' : 'creado'}`;
@@ -209,4 +228,32 @@ export async function changeOwnPasswordAction(_prev: ActionState, formData: Form
   // La contraseña cambió: todas las sesiones previas quedan invalidadas, incluida esta.
   await destroySession().catch(() => undefined);
   redirect('/admin/login?cambio=1');
+}
+
+// ── Importación masiva (tarifas y comerciantes) ────────────────
+
+export async function importRatesAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const user = await requireUser('content.write');
+    const ctx = await getRequestContext();
+    const count = await importRates(String(formData.get('data') ?? ''), formData.get('replace') === 'on', actorOf(user), ctx);
+    refreshPublicSite();
+    return { ok: true, message: `Listo: se importaron ${count} tarifa(s).` };
+  } catch (err) {
+    unstable_rethrow(err);
+    return toActionState(err, 'rates.import');
+  }
+}
+
+export async function importMerchantsAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const user = await requireUser('content.write');
+    const ctx = await getRequestContext();
+    const r = await importMerchants(String(formData.get('data') ?? ''), actorOf(user), ctx);
+    refreshPublicSite();
+    return { ok: true, message: `Listo: ${r.created} comerciante(s) nuevo(s) y ${r.updated} actualizado(s).` };
+  } catch (err) {
+    unstable_rethrow(err);
+    return toActionState(err, 'merchants.import');
+  }
 }

@@ -34,6 +34,8 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ['pg', 'bcryptjs'],
+  // Las fotos del panel se reducen en el navegador; este límite cubre lo que llega al servidor (máx. ~4 MB por imagen).
+  experimental: { serverActions: { bodySizeLimit: '4.5mb' } },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

@@ -19,7 +19,19 @@ export type IconName =
   | 'check'
   | 'alert'
   | 'megaphone'
-  | 'pulse';
+  | 'pulse'
+  | 'calc'
+  | 'search'
+  | 'star'
+  | 'pallet'
+  | 'route'
+  | 'store'
+  | 'link'
+  | 'facebook'
+  | 'tiktok'
+  | 'copy'
+  | 'shieldcheck'
+  | 'gift';
 
 const PATHS: Record<IconName, ReactNode> = {
   plane: <path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2l-1.1 1.1 6.4 3.6-3.1 3.1-2.6-.5-.9.9 3 1.7 1.7 3 .9-.9-.5-2.6 3.1-3.1 3.6 6.4z" />,
@@ -103,6 +115,60 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   pulse: <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />,
+  calc: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-4.2-4.2" />
+    </>
+  ),
+  star: <path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z" />,
+  pallet: (
+    <>
+      <rect x="5" y="4.5" width="6" height="6" />
+      <rect x="13" y="4.5" width="6" height="6" />
+      <path d="M3 13.5h18v3H3zM6 16.5v3M12 16.5v3M18 16.5v3" />
+    </>
+  ),
+  route: (
+    <>
+      <circle cx="6" cy="18" r="2" />
+      <circle cx="18" cy="6" r="2" />
+      <path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6" />
+    </>
+  ),
+  store: (
+    <>
+      <path d="m4 9.5 1.5-5.5h13L20 9.5M4 9.5v10h16v-10" />
+      <path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0M9.5 19.5v-5h5v5" />
+    </>
+  ),
+  link: <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />,
+  facebook: <path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8.5c0-.3.2-.5.5-.5z" />,
+  tiktok: <path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5M14 4c.3 2.3 1.9 3.8 4.5 4" />,
+  copy: (
+    <>
+      <rect x="8" y="8" width="11" height="11" rx="2" />
+      <path d="M5 15V6a2 2 0 0 1 2-2h8" />
+    </>
+  ),
+  shieldcheck: (
+    <>
+      <path d="M12 3.2 5 6v5.6c0 4.3 2.9 7.6 7 9.2 4.1-1.6 7-4.9 7-9.2V6z" />
+      <path d="m8.8 12.2 2.2 2.2 4.2-4.4" />
+    </>
+  ),
+  gift: (
+    <>
+      <rect x="4" y="9" width="16" height="11" rx="1.5" />
+      <path d="M3 9h18v-2.5H3zM12 6.5V20M12 6.5c-1-3-5-3-4.5-.5.3 1.5 2.5 1 4.5.5zM12 6.5c1-3 5-3 4.5-.5-.3 1.5-2.5 1-4.5.5z" />
+    </>
+  ),
 };
 
 export function Icon({ name, size = 22, className }: { name: IconName; size?: number; className?: string }) {
@@ -125,7 +191,7 @@ export function Icon({ name, size = 22, className }: { name: IconName; size?: nu
   );
 }
 
-const SERVICE_ICONS = new Set<IconName>(['plane', 'truck', 'box', 'mail', 'pin', 'shield']);
+const SERVICE_ICONS = new Set<IconName>(['plane', 'truck', 'box', 'mail', 'pin', 'shield', 'pallet']);
 export function serviceIcon(name: string): IconName {
   return SERVICE_ICONS.has(name as IconName) ? (name as IconName) : 'box';
 }

@@ -1,14 +1,19 @@
-import Image from 'next/image';
 import Link from 'next/link';
-import { Icon, serviceIcon } from '@/components/Icon';
+import { CarrierChips, ServiceLogo, TopNine } from '@/components/HomeBits';
+import { Icon, type IconName } from '@/components/Icon';
 import { LeadForm } from '@/components/LeadForm';
 import { LxHero } from '@/components/LxHero';
 import { LxTopBar } from '@/components/LxTopBar';
-import { Motion } from '@/components/Motion';
 import { NewsFeatured, NewsItem, NewsMarquee } from '@/components/LxNews';
+import { Motion } from '@/components/Motion';
+import { QuoteTool } from '@/components/QuoteTool';
 import { getSiteContent, type Service } from '@/lib/content';
-import { dateParts, daysBetween, formatTime, relativeDays } from '@/lib/format';
-import { whatsappLink } from '@/lib/settings';
+import { getPublicMerchants } from '@/lib/directory';
+import { dateParts, daysBetween, formatLongDate, formatTime, relativeDays } from '@/lib/format';
+import { getLatestPost } from '@/lib/posts';
+import { DEFAULT_QUOTE_SERVICES, SERVICE_SLUGS, splitCarriers } from '@/lib/quote';
+import { getRates } from '@/lib/rates';
+import { WEEKDAY_OPTIONS, pairLines, safeUrl, whatsappLink } from '@/lib/settings';
 
 export const revalidate = 60;
 
@@ -41,19 +46,11 @@ const STAT_STYLES = [
   },
 ];
 
-/** Logo ilustrado por tipo de servicio (campo "icon"). Si el servicio usa otro ícono, se muestra el ícono de línea. */
-const SERVICE_IMAGES: Record<string, string> = {
-  plane: '/services/aereo.webp',
-  truck: '/services/terrestre.webp',
-  box: '/services/nacional.webp',
-  mail: '/services/postal.webp',
-};
-
-const COMMUNITY_POINTS: { icon: 'megaphone' | 'calendar' | 'pulse' | 'whatsapp'; title: string; text: string }[] = [
-  { icon: 'megaphone', title: 'Avisos oficiales', text: 'Comunicados claros sobre cambios, temporadas y novedades de operación.' },
-  { icon: 'calendar', title: 'Calendario de recolecciones', text: 'Días y horarios publicados con anticipación para que planees tus envíos.' },
-  { icon: 'pulse', title: 'Estado de cada servicio', text: 'Consulta qué servicios están activos y sus tiempos estimados de entrega.' },
-  { icon: 'whatsapp', title: 'Atención directa', text: 'Habla con una persona del equipo por WhatsApp cuando lo necesites.' },
+const COMMUNITY_POINTS: { icon: IconName; title: string; text: string }[] = [
+  { icon: 'users', title: 'Grupo de WhatsApp', text: 'Entérate de la ruta, los vendedores y las novedades en tiempo real.' },
+  { icon: 'calendar', title: 'Recolección semanal', text: 'Día y horario fijos, publicados para que planees tus envíos.' },
+  { icon: 'shieldcheck', title: 'Directorio verificado', text: 'Consulta el estatus de cada comerciante antes de pagar.' },
+  { icon: 'whatsapp', title: 'Atención directa', text: 'Habla con una persona de nuestro equipo cuando lo necesites.' },
 ];
 
 const RING_R = 70;
@@ -64,9 +61,15 @@ const OP_TEXT = {
   bad: 'Hay servicios en pausa · consulta el detalle',
 } as const;
 
-function SectionHead({ tag, title, id, left = false }: { tag: string; title: string; id: string; left?: boolean }) {
+function monthLabel(iso: string): string {
+  const [y, m] = iso.split('-').map(Number);
+  const text = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, 1)));
+  return (text.charAt(0).toUpperCase() + text.slice(1)).replace(' de ', ' ');
+}
+
+function SectionHead({ tag, title, id, left = false, light = false }: { tag: string; title: string; id: string; left?: boolean; light?: boolean }) {
   return (
-    <Motion kind="blur" className={`lx-head ${left ? 'lx-head--left' : ''}`}>
+    <Motion kind="blur" className={`lx-head ${left ? 'lx-head--left' : ''} ${light ? 'lx-head--light' : ''}`}>
       <p className="lx-head__tag">[{tag}]</p>
       <h2 id={id} className="lx-head__title">{title}</h2>
     </Motion>
@@ -74,9 +77,10 @@ function SectionHead({ tag, title, id, left = false }: { tag: string; title: str
 }
 
 export default async function HomePage() {
-  const c = await getSiteContent();
+  const [c, rates, merchants, post] = await Promise.all([getSiteContent(), getRates(), getPublicMerchants(), getLatestPost()]);
   const { settings: s } = c;
   const wa = whatsappLink(s);
+  const waBase = wa.split('?')[0];
 
   const activeCount = c.services.filter((x) => x.status === 'active').length;
   const latest = c.announcements.slice(0, 3);
@@ -90,9 +94,35 @@ export default async function HomePage() {
   const leftServices = c.services.slice(0, half);
   const rightServices = c.services.slice(half);
 
+  const quoteServices = c.services.some((x) => SERVICE_SLUGS.includes(x.slug as never))
+    ? c.services
+        .filter((x) => SERVICE_SLUGS.includes(x.slug as never))
+        .map((x) => ({ slug: x.slug, name: x.name, carriers: splitCarriers(x.carriers), coverage: x.coverage }))
+    : DEFAULT_QUOTE_SERVICES;
+
+  const activeMerchants = merchants.filter((m) => m.status === 'activo').length;
+  const top = merchants.filter((m) => m.top_rank).sort((a, b) => (a.top_rank ?? 99) - (b.top_rank ?? 99)).slice(0, 9);
+  const topLabel = s.top9_label || monthLabel(c.today);
+
+  const steps = pairLines(s.how_steps);
+  const schedule = pairLines(s.schedule_rows);
+  const weekdayName = WEEKDAY_OPTIONS.find((o) => o.value === s.pickup_weekday)?.label ?? 'Viernes';
+  const pickupWindow = `${formatTime(s.pickup_start)} a ${formatTime(s.pickup_end)}`;
+
+  const group = safeUrl(s.whatsapp_group_url);
+  const fb = safeUrl(s.facebook_url);
+  const tt = safeUrl(s.tiktok_url);
+
+  const quick: { href: string; icon: IconName; label: string; sub: string }[] = [
+    { href: '/cotizar', icon: 'calc', label: 'Cotizar envío', sub: 'Precio al instante' },
+    { href: '/rastreo', icon: 'search', label: 'Rastrear guía', sub: 'Todas las paqueterías' },
+    { href: '/comerciantes', icon: 'store', label: 'Comerciantes', sub: merchants.length ? `${activeMerchants} activos` : 'Directorio' },
+    { href: '/ruta-del-saldo', icon: 'route', label: 'La Ruta del Saldo', sub: 'Únete al grupo' },
+  ];
+
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': 'LocalBusiness',
     name: s.brand_name,
     alternateName: s.brand_legal || undefined,
     description: `${s.brand_name} ${s.brand_tagline}`,
@@ -100,23 +130,22 @@ export default async function HomePage() {
     logo: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')}/logo.png` : undefined,
     telephone: s.whatsapp_number ? `+${s.whatsapp_number.replace(/\D/g, '')}` : undefined,
     email: s.contact_email || undefined,
+    address: { '@type': 'PostalAddress', addressLocality: 'Tijuana', addressRegion: 'Baja California', addressCountry: 'MX' },
     areaServed: { '@type': 'Country', name: 'México' },
   };
 
   const serviceCard = (sv: Service, i: number) => (
     <Motion key={sv.id} delay={i * 120} className="lx-chamfer lx-service" style={{ ['--c' as string]: '16px' }}>
       <div className="lx-chamfer__in lx-service__in">
-        {SERVICE_IMAGES[sv.icon] ? (
-          <span className="lx-service__media">
-            <Image src={SERVICE_IMAGES[sv.icon]} alt="" width={112} height={112} sizes="72px" />
-          </span>
-        ) : (
-          <span className="lx-service__media lx-service__media--icon"><Icon name={serviceIcon(sv.icon)} size={28} /></span>
-        )}
+        <ServiceLogo sv={sv} size={72} className="lx-service__media" />
         <div className="lx-service__body">
           <h3>{sv.name}</h3>
           {sv.description && <p>{sv.description}</p>}
+          <CarrierChips carriers={sv.carriers} />
           <div className="lx-service__meta">
+            {sv.coverage && (
+              <span className="lx-pill"><Icon name="pin" size={13} /> {sv.coverage}</span>
+            )}
             {sv.eta_text && (
               <span className="lx-pill"><Icon name="clock" size={13} /> {sv.eta_text}</span>
             )}
@@ -125,14 +154,9 @@ export default async function HomePage() {
             </span>
           </div>
           {sv.status_note && <p className="lx-service__note">{sv.status_note}</p>}
-          <a
-            className="lx-link"
-            href={whatsappLink(s, `Hola ${s.brand_name}, quiero cotizar un envío por ${sv.name.toLowerCase()}.`)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link className="lx-link" href={sv.slug ? `/cotizar?servicio=${sv.slug}` : '/cotizar'}>
             Cotizar este servicio <Icon name="arrow" size={14} />
-          </a>
+          </Link>
         </div>
       </div>
     </Motion>
@@ -150,7 +174,25 @@ export default async function HomePage() {
         <div className="lx-hero__shade" aria-hidden="true" />
         <LxTopBar settings={s} />
         <div className="lx-hero__center">
-          <LxHero slides={c.slides} whatsappHref={wa} />
+          <div className="lx-hero__stack">
+            {s.location_badge && (
+              <p className="lx-hero__badge"><Icon name="pin" size={13} /> {s.location_badge}</p>
+            )}
+            <LxHero slides={c.slides} whatsappHref={wa} />
+            <ul className="lx-quick" aria-label="Accesos rápidos">
+              {quick.map((q) => (
+                <li key={q.href}>
+                  <Link href={q.href} className="lx-quick__item">
+                    <span className="lx-quick__icon"><Icon name={q.icon} size={18} /></span>
+                    <span className="lx-quick__txt">
+                      <strong>{q.label}</strong>
+                      <small>{q.sub}</small>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -160,7 +202,7 @@ export default async function HomePage() {
           <div className="lx-services__center">
             <SectionHead tag="servicios" title="Servicios" id="servicios-title" />
             <Motion kind="blur" delay={150} className="lx-services__lead">
-              <p>Elige cómo viaja tu mercancía a todo México.</p>
+              <p>Elige cómo viaja tu mercancía.</p>
             </Motion>
             <Motion kind="blur" delay={200} className="lx-square">
               <video autoPlay loop muted playsInline preload="metadata" aria-hidden="true" tabIndex={-1}>
@@ -174,7 +216,7 @@ export default async function HomePage() {
         <div className="lx-fade lx-fade--b" aria-hidden="true" />
       </section>
 
-      {/* ── 03 · Indicadores ──────────────────────────────── */}
+      {/* ── 03 · Quiénes somos + indicadores ──────────────── */}
       <section id="indicadores" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="indicadores-title">
         <div className="lx-wrap">
           <div className="lx-about">
@@ -182,12 +224,12 @@ export default async function HomePage() {
               <h2 id="indicadores-title" className="lx-big">
                 {s.brand_name}
                 <br />
-                {s.brand_tagline}
+                <span className="lx-big__accent">{s.brand_tagline}</span>
               </h2>
             </Motion>
             <Motion kind="blur" delay={150} className="lx-about__copy">
               {s.footer_quote && <p>{s.footer_quote}</p>}
-              {s.community_text && <p>{s.community_text}</p>}
+              {s.route_text && <p>{s.route_text}</p>}
               <a className="lx-arrowlink" href={wa} target="_blank" rel="noopener noreferrer">
                 Hablar con el equipo
                 <span className="lx-arrowbox"><Icon name="arrow" size={14} /></span>
@@ -200,11 +242,7 @@ export default async function HomePage() {
               {c.stats.map((st, i) => {
                 const style = STAT_STYLES[i % STAT_STYLES.length];
                 return (
-                  <Motion
-                    key={st.id}
-                    delay={i * 200}
-                    className={`lx-stat ${i % 3 === 1 ? 'lx-stat--offset' : ''}`}
-                  >
+                  <Motion key={st.id} delay={i * 200} className={`lx-stat ${i % 3 === 1 ? 'lx-stat--offset' : ''}`}>
                     <div className="lx-stat__outer" style={{ clipPath: style.clip }}>
                       <div
                         className="lx-stat__img"
@@ -228,8 +266,159 @@ export default async function HomePage() {
         <div className="lx-fade lx-fade--b" aria-hidden="true" />
       </section>
 
-      {/* ── 04 · Estado operativo + recolecciones ─────────── */}
-      <section id="estado" data-lx-section className="lx-sec lx-sec--a" aria-labelledby="estado-title">
+      {/* ── 04 · Cotizador ────────────────────────────────── */}
+      <section id="cotizar" data-lx-section className="lx-sec lx-sec--a" aria-labelledby="cotizar-title">
+        <div className="lx-wrap">
+          <SectionHead tag="cotizador" title="Cotiza tu envío" id="cotizar-title" />
+          <div className="lx-quotegrid">
+            <Motion className="lx-quotegrid__info">
+              <h3>Así de fácil</h3>
+              <ol className="lx-howto">
+                <li><span>1</span><div><strong>Elige el servicio</strong><p>Aéreo, terrestre, Bajapack o gran volumen en tarimas.</p></div></li>
+                <li><span>2</span><div><strong>Indica destino y peso</strong><p>Con el tabulador te mostramos el precio estimado al instante.</p></div></li>
+                <li><span>3</span><div><strong>Confírmalo por WhatsApp</strong><p>Te llega el mensaje ya armado; nosotros coordinamos tu recolección.</p></div></li>
+              </ol>
+              <div className="lx-quotegrid__pick">
+                <Icon name="calendar" size={18} />
+                <p>Recolección cada <strong>{weekdayName.toLowerCase()}</strong> de {pickupWindow}.</p>
+              </div>
+              <Link className="lx-arrowlink" href="/cotizar">
+                Ver el tabulador completo
+                <span className="lx-arrowbox"><Icon name="arrow" size={14} /></span>
+              </Link>
+            </Motion>
+            <Motion delay={150} className="lx-quotegrid__tool">
+              <QuoteTool rates={rates} services={quoteServices} whatsappBase={waBase} brandName={s.brand_name} note={s.quote_note} />
+            </Motion>
+          </div>
+        </div>
+        <div className="lx-fade lx-fade--a" aria-hidden="true" />
+      </section>
+
+      {/* ── 05 · Comerciantes y Top 9 ─────────────────────── */}
+      <section id="comerciantes" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="comerciantes-title">
+        <div className="lx-wrap">
+          <SectionHead tag="directorio" title="Comerciantes" id="comerciantes-title" />
+
+          <div className="lx-dirhero">
+            <Motion className="lx-dirhero__count lx-chamfer" style={{ ['--c' as string]: '22px' }}>
+              <div className="lx-chamfer__in lx-dirhero__in">
+                <span className="lx-dirhero__num">{merchants.length > 0 ? activeMerchants : '—'}</span>
+                <span className="lx-dirhero__label">comerciantes activos</span>
+                <p>Busca por nombre o categoría y consulta su estatus antes de pagar.</p>
+                <form className="lx-dirhero__search" action="/comerciantes" role="search">
+                  <Icon name="search" size={18} />
+                  <input type="search" name="q" placeholder="Busca un comerciante…" aria-label="Buscar comerciante" maxLength={80} />
+                  <button type="submit" className="lx-cta">Buscar</button>
+                </form>
+                <Link className="lx-arrowlink" href="/comerciantes">
+                  Ver el directorio completo
+                  <span className="lx-arrowbox"><Icon name="arrow" size={14} /></span>
+                </Link>
+              </div>
+            </Motion>
+            <Motion delay={120} className="lx-safety">
+              <span className="lx-safety__icon"><Icon name="shieldcheck" size={22} /></span>
+              <div>
+                <strong>Compra con seguridad</strong>
+                <p>Antes de pagar a cualquier vendedor, verifica en el directorio que su estatus sea <b>Activo</b>. Si ves <b>Renovación pendiente</b> o <b>Riesgo</b>, consúltanos primero.</p>
+              </div>
+            </Motion>
+          </div>
+
+          <TopNine items={top} label={topLabel} />
+        </div>
+        <div className="lx-fade lx-fade--b" aria-hidden="true" />
+      </section>
+
+      {/* ── 06 · ¿Cómo funciona? + calendario ─────────────── */}
+      <section id="funciona" data-lx-section className="lx-sec lx-dark" aria-labelledby="funciona-title">
+        <div className="lx-dark__glow" aria-hidden="true" />
+        <div className="lx-wrap">
+          <SectionHead tag="así trabajamos" title="¿Cómo funciona?" id="funciona-title" light />
+          <ol className="lx-steps">
+            {steps.map(([title, text], i) => (
+              <Motion as="li" key={title} delay={i * 140} className="lx-step">
+                <span className="lx-step__n">{i + 1}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </Motion>
+            ))}
+          </ol>
+
+          {schedule.length > 0 && (
+            <Motion delay={150} className="lx-sched">
+              <div className="lx-sched__head">
+                <span className="lx-sched__tag">Esquema de atención</span>
+                <h3>{s.schedule_title}</h3>
+                {s.schedule_intro && <p>{s.schedule_intro}</p>}
+              </div>
+              <ul className="lx-sched__rows">
+                {schedule.map(([pay, out]) => (
+                  <li key={pay}>
+                    <span>{pay}</span>
+                    <strong>{out}</strong>
+                  </li>
+                ))}
+              </ul>
+            </Motion>
+          )}
+        </div>
+      </section>
+
+      {/* ── 07 · Mensaje personal + misión y visión ───────── */}
+      <section id="mensaje" data-lx-section className="lx-sec lx-sec--a" aria-labelledby="mensaje-title">
+        <div className="lx-wrap">
+          <SectionHead tag="de nuestra parte" title="Un mensaje para ti" id="mensaje-title" />
+          <div className="lx-owner">
+            <Motion className="lx-owner__photo lx-chamfer" style={{ ['--c' as string]: '28px' }}>
+              <div className="lx-chamfer__in lx-owner__frame">
+                {post?.photo_id ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={`/media/${post.photo_id}`} alt={post.title} loading="lazy" />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="lx-owner__logo" src="/logo.png" alt={`${s.brand_name} · ${s.brand_tagline}`} loading="lazy" />
+                )}
+              </div>
+            </Motion>
+            <Motion delay={150} className="lx-owner__text">
+              <p className="lx-owner__who">{s.owner_names}{s.owner_role ? ` · ${s.owner_role}` : ''}</p>
+              <h3>{post?.title ?? 'Gracias por confiar en nosotros'}</h3>
+              <p className="lx-owner__body">
+                {post?.body ?? 'Aquí compartiremos novedades, eventos y momentos de nuestro trabajo con la comunidad. Gracias por confiar en nosotros.'}
+              </p>
+              {post && (
+                <p className="lx-owner__sign">
+                  {post.author && <strong>{post.author}</strong>}
+                  <span>{formatLongDate(post.published_on)}</span>
+                </p>
+              )}
+            </Motion>
+          </div>
+
+          <div className="lx-mv">
+            {[
+              { icon: 'star' as IconName, title: 'Misión', text: s.mission_text },
+              { icon: 'route' as IconName, title: 'Visión', text: s.vision_text },
+            ]
+              .filter((x) => x.text)
+              .map((x, i) => (
+                <Motion key={x.title} delay={i * 140} className="lx-chamfer" style={{ ['--c' as string]: '20px' }}>
+                  <div className="lx-chamfer__in lx-mv__card">
+                    <span className="lx-mv__icon"><Icon name={x.icon} size={20} /></span>
+                    <h3>{x.title}</h3>
+                    <p>{x.text}</p>
+                  </div>
+                </Motion>
+              ))}
+          </div>
+        </div>
+        <div className="lx-fade lx-fade--a" aria-hidden="true" />
+      </section>
+
+      {/* ── 08 · Estado operativo + recolecciones ─────────── */}
+      <section id="estado" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="estado-title">
         <div className="lx-wrap">
           <SectionHead tag="en tiempo real" title="Estado operativo" id="estado-title" />
 
@@ -267,24 +456,18 @@ export default async function HomePage() {
                   </div>
                   <div className="lx-ops__intro">
                     <h3>Servicios</h3>
-                    <p>Estado de cada servicio y su tiempo estimado de entrega.</p>
-                    <span className="lx-ops__foot">Tiempos en días hábiles</span>
+                    <p>Estado de cada servicio de envío.</p>
+                    <span className="lx-ops__foot">Actualizado por el equipo</span>
                   </div>
                 </div>
 
                 <ul className="lx-svcgrid">
                   {c.services.map((sv, i) => (
                     <Motion as="li" key={sv.id} delay={200 + i * 100} className="lx-svc">
-                      {SERVICE_IMAGES[sv.icon] ? (
-                        <span className="lx-svc__logo">
-                          <Image src={SERVICE_IMAGES[sv.icon]} alt="" width={96} height={96} sizes="48px" />
-                        </span>
-                      ) : (
-                        <span className="lx-svc__logo lx-svc__logo--icon"><Icon name={serviceIcon(sv.icon)} size={22} /></span>
-                      )}
+                      <ServiceLogo sv={sv} size={48} className="lx-svc__logo" />
                       <div className="lx-svc__info">
                         <strong>{sv.name}</strong>
-                        <span>{sv.status_note || sv.eta_text}</span>
+                        <span>{sv.status_note || sv.coverage || sv.carriers}</span>
                       </div>
                       <span className={`lx-pill lx-pill--${sv.status} lx-pill--live`}>
                         <span className="lx-pill__dot" /> {STATUS_LABEL[sv.status]}
@@ -300,7 +483,7 @@ export default async function HomePage() {
                 <div className="lx-panel__top">
                   <div>
                     <h3>Próximas recolecciones</h3>
-                    <p className="lx-panel__sub">Calendario publicado por el equipo.</p>
+                    <p className="lx-panel__sub">Cada {weekdayName.toLowerCase()} · {pickupWindow}</p>
                   </div>
                   <a
                     className="lx-cta lx-cta--sm"
@@ -312,7 +495,7 @@ export default async function HomePage() {
                   </a>
                 </div>
                 {c.pickups.length === 0 ? (
-                  <p className="lx-empty">Pronto publicaremos las próximas fechas. Escríbenos por WhatsApp para coordinar tu recolección.</p>
+                  <p className="lx-empty">Escríbenos por WhatsApp para coordinar tu recolección.</p>
                 ) : (
                   <ol className="lx-tl">
                     {c.pickups.map((p, i) => {
@@ -349,8 +532,8 @@ export default async function HomePage() {
         <div className="lx-fade lx-fade--b" aria-hidden="true" />
       </section>
 
-      {/* ── 05 · Comunicados ──────────────────────────────── */}
-      <section id="comunicados" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="comunicados-title">
+      {/* ── 09 · Comunicados ──────────────────────────────── */}
+      <section id="comunicados" data-lx-section className="lx-sec lx-sec--a" aria-labelledby="comunicados-title">
         <div className="lx-wrap">
           <SectionHead tag="avisos oficiales" title="Comunicados" id="comunicados-title" />
           {latest.length === 0 ? (
@@ -381,8 +564,8 @@ export default async function HomePage() {
         <div className="lx-fade lx-fade--a" aria-hidden="true" />
       </section>
 
-      {/* ── 06 · Comunidad + formulario ───────────────────── */}
-      <section id="comunidad" data-lx-section className="lx-sec lx-blue" aria-labelledby="comunidad-title">
+      {/* ── 10 · La Ruta del Saldo + comunidad ────────────── */}
+      <section id="ruta" data-lx-section className="lx-sec lx-blue" aria-labelledby="ruta-title">
         <div className="lx-blue__glow lx-blue__glow--a" aria-hidden="true" />
         <div className="lx-blue__glow lx-blue__glow--b" aria-hidden="true" />
         <div className="lx-blue__grid" aria-hidden="true" />
@@ -390,9 +573,29 @@ export default async function HomePage() {
           <div className="lx-community">
             <div>
               <Motion kind="blur">
-                <p className="lx-blue__tag">[{s.community_eyebrow.toLowerCase()}]</p>
-                <h2 id="comunidad-title" className="lx-blue__title">{s.community_title}</h2>
-                <p className="lx-blue__lead">{s.community_text}</p>
+                <p className="lx-blue__tag">[la ruta del saldo]</p>
+                <h2 id="ruta-title" className="lx-blue__title">{s.route_title}</h2>
+                <p className="lx-blue__lead">{s.route_text}</p>
+              </Motion>
+              <Motion delay={150} className="lx-socials">
+                {group && (
+                  <a className="lx-cta lx-cta--wa" href={group} target="_blank" rel="noopener noreferrer">
+                    <Icon name="users" size={16} /> Unirme al grupo de WhatsApp
+                  </a>
+                )}
+                {fb && (
+                  <a className="lx-cta lx-cta--ghost" href={fb} target="_blank" rel="noopener noreferrer">
+                    <Icon name="facebook" size={16} /> Facebook
+                  </a>
+                )}
+                {tt && (
+                  <a className="lx-cta lx-cta--ghost" href={tt} target="_blank" rel="noopener noreferrer">
+                    <Icon name="tiktok" size={16} /> TikTok
+                  </a>
+                )}
+                <Link className="lx-cta lx-cta--ghost" href="/ruta-del-saldo">
+                  Conocer la ruta <Icon name="arrow" size={14} />
+                </Link>
               </Motion>
               <ul className="lx-points lx-points--blue">
                 {COMMUNITY_POINTS.map((pt, i) => (
@@ -405,22 +608,12 @@ export default async function HomePage() {
                   </Motion>
                 ))}
               </ul>
-              {c.stats.length > 0 && (
-                <Motion delay={300} className="lx-trust">
-                  {c.stats.slice(0, 3).map((st) => (
-                    <div key={st.id}>
-                      <strong>{st.value}</strong>
-                      <span>{st.label}</span>
-                    </div>
-                  ))}
-                </Motion>
-              )}
             </div>
             <Motion delay={150} className="lx-formwrap">
               <div className="lx-formcard lx-formcard--blue">
                 <div className="lx-formcard__bar">
-                  <h3>Únete a la comunidad</h3>
-                  <p>Déjanos tus datos y te contactamos. También puedes escribirnos directo.</p>
+                  <h3>{s.community_title}</h3>
+                  <p>{s.community_text}</p>
                 </div>
                 <div className="lx-formcard__body">
                   <LeadForm whatsappHref={wa} />

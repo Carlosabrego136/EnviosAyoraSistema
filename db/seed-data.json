@@ -1,69 +1,77 @@
 {
   "slides": [
     {
-      "eyebrow": "Recolección y envíos",
-      "title": "Tu mercancía llega. Siempre.",
-      "subtitle": "Del punto de recolección a todo México",
-      "body": "Coordinamos envíos aéreos, terrestres y paquetería nacional con procesos claros y un equipo que da la cara.",
-      "cta_label": "Ver servicios",
-      "cta_href": "#servicios",
+      "eyebrow": "Tus recolectores de confianza",
+      "title": "Compramos, recolectamos y enviamos.",
+      "subtitle": "Ensenada · Tijuana · Rosarito y todo México",
+      "body": "Recolectamos tu mercancía y la enviamos con FedEx, DHL, Estafeta, Volaris y Paquete Express.",
+      "cta_label": "Cotizar mi envío",
+      "cta_href": "/cotizar",
       "sort_order": 1
     },
     {
-      "eyebrow": "Cobertura nacional",
-      "title": "Enviamos a todo México",
-      "subtitle": "32 entidades federativas",
-      "body": "Elige la modalidad que mejor se adapta a tu mercancía, a tu tiempo y a tu presupuesto.",
-      "cta_label": "Cotizar por WhatsApp",
+      "eyebrow": "Recolección",
+      "title": "Cada viernes de 10:00 a 16:00",
+      "subtitle": "Entregamos personalmente",
+      "body": "Coordina tu recolección con nuestro equipo y recibe atención directa por WhatsApp.",
+      "cta_label": "Agendar por WhatsApp",
       "cta_href": "whatsapp",
       "sort_order": 2
     },
     {
-      "eyebrow": "Comunidad Fénix",
-      "title": "Más que envíos, un equipo que responde",
-      "subtitle": "Atención directa y comunicación real",
-      "body": "Regístrate como comerciante y recibe avisos oficiales, calendario de recolecciones y estado de cada servicio.",
-      "cta_label": "Unirme a la comunidad",
-      "cta_href": "#comunidad",
+      "eyebrow": "La Ruta del Saldo",
+      "title": "La Ruta del Saldo Ensenada–Tijuana",
+      "subtitle": "Únete a nuestro grupo de WhatsApp",
+      "body": "Compra con tus vendedores favoritos y nosotros recolectamos y enviamos tus compras.",
+      "cta_label": "Conocer la ruta",
+      "cta_href": "/ruta-del-saldo",
       "sort_order": 3
     }
   ],
   "stats": [
-    { "value": "32", "label": "Entidades con cobertura", "caption": "Envíos a todo México", "sort_order": 1 },
-    { "value": "2", "label": "Días de recolección", "caption": "Cada semana, con horario fijo", "sort_order": 2 },
-    { "value": "4", "label": "Servicios activos", "caption": "Aéreo, terrestre y más", "sort_order": 3 }
+    { "value": "32", "label": "Estados de la República", "caption": "Enviamos a todo México", "sort_order": 1 },
+    { "value": "VIE", "label": "Día de recolección", "caption": "De 10:00 a 16:00", "sort_order": 2 },
+    { "value": "4", "label": "Servicios de envío", "caption": "Aéreo, terrestre, Bajapack y tarimas", "sort_order": 3 }
   ],
   "services": [
     {
-      "name": "Envíos aéreos",
-      "description": "El menor tiempo de entrega, ideal para mercancía urgente.",
-      "eta_text": "1 a 3 días hábiles",
+      "slug": "aereo",
+      "name": "Envío aéreo",
+      "description": "Llega más rápido a cualquier parte de la República. Cotiza por peso y paquetería.",
+      "eta_text": "",
       "icon": "plane",
-      "status": "active",
+      "carriers": "FedEx, DHL, Estafeta, Volaris",
+      "coverage": "Todo México",
       "sort_order": 1
     },
     {
-      "name": "Envíos terrestres",
-      "description": "La alternativa más económica para la mayoría de los envíos.",
-      "eta_text": "4 a 8 días hábiles",
+      "slug": "terrestre",
+      "name": "Envío terrestre",
+      "description": "La opción económica para tus compras. Cotiza por peso y paquetería.",
+      "eta_text": "",
       "icon": "truck",
-      "status": "active",
+      "carriers": "Paquete Express, FedEx, Estafeta",
+      "coverage": "Todo México",
       "sort_order": 2
     },
     {
-      "name": "Paquetería nacional",
-      "description": "Cobertura en las 32 entidades federativas con guía de seguimiento.",
-      "eta_text": "3 a 6 días hábiles",
+      "slug": "bajapack",
+      "name": "Bajapack",
+      "description": "Envíos dentro de Baja California con Baja Pack Express.",
+      "eta_text": "",
       "icon": "box",
-      "status": "active",
+      "carriers": "Baja Pack Express",
+      "coverage": "Solo Baja California",
       "sort_order": 3
     },
     {
-      "name": "Servicio postal",
-      "description": "Opción de bajo costo para paquetes ligeros a cualquier destino.",
-      "eta_text": "5 a 10 días hábiles",
-      "icon": "mail",
-      "status": "active",
+      "slug": "tarimas",
+      "name": "Gran volumen · Tarimas",
+      "description": "Envío terrestre de gran volumen, en tarimas. Cotización personalizada.",
+      "eta_text": "",
+      "icon": "pallet",
+      "carriers": "",
+      "coverage": "",
       "sort_order": 4
     }
   ],
@@ -71,13 +79,13 @@
     {
       "category": "Bienvenida",
       "title": "Estrenamos sitio oficial",
-      "body": "Aquí publicaremos los avisos oficiales, el calendario de recolecciones y el estado de cada servicio. Mantente al tanto.",
+      "body": "Aquí publicaremos los avisos oficiales, el calendario de recolecciones y todo lo que necesitas para cotizar y dar seguimiento a tus envíos. Mantente al tanto.",
       "days_ago": 0
     },
     {
       "category": "Operaciones",
       "title": "Recolección con horario fijo",
-      "body": "Las recolecciones se realizan en nuestras instalaciones en los días y horarios publicados en el calendario. Llega con tu mercancía lista y etiquetada.",
+      "body": "Las recolecciones se realizan los días y horarios publicados en el calendario. Llega con tu mercancía lista y etiquetada.",
       "days_ago": 6
     }
   ]

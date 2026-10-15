@@ -7,22 +7,6 @@ import { createClient, fail } from './_db.mjs';
 
 const withSample = !process.argv.includes('--no-sample');
 
-function nextDates(weekdays, weeks) {
-  // Próximas fechas (hoy incluido) para los días de la semana indicados (0=dom … 6=sáb).
-  const out = [];
-  const cursor = new Date();
-  cursor.setHours(12, 0, 0, 0);
-  for (let i = 0; i < weeks * 7 && out.length < weeks * weekdays.length; i += 1) {
-    if (weekdays.includes(cursor.getDay())) {
-      out.push(
-        `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`,
-      );
-    }
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return out;
-}
-
 async function audit(client, action, entity, entityId, summary, after) {
   await client.query(
     `INSERT INTO audit_log (action, entity, entity_id, summary, after_data)
@@ -95,9 +79,9 @@ async function main() {
       if (await isEmpty('services')) {
         for (const s of data.services) {
           await client.query(
-            `INSERT INTO services (name, description, eta_text, icon, status, sort_order)
-             VALUES ($1,$2,$3,$4,$5,$6)`,
-            [s.name, s.description, s.eta_text, s.icon, s.status, s.sort_order],
+            `INSERT INTO services (slug, name, description, eta_text, icon, status, carriers, coverage, sort_order)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+            [s.slug ?? '', s.name, s.description, s.eta_text ?? '', s.icon, s.status ?? 'active', s.carriers ?? '', s.coverage ?? '', s.sort_order],
           );
         }
         console.log(`✔ ${data.services.length} servicios de ejemplo`);
@@ -111,24 +95,6 @@ async function main() {
           );
         }
         console.log(`✔ ${data.announcements.length} comunicados de ejemplo`);
-      }
-      if (await isEmpty('pickups')) {
-        // Viernes (11:00–16:00) y sábado (10:00–13:00): ajusta los horarios reales desde el panel.
-        const fridays = nextDates([5], 3);
-        const saturdays = nextDates([6], 3);
-        for (const d of fridays) {
-          await client.query(
-            `INSERT INTO pickups (pickup_date, start_time, end_time) VALUES ($1,'11:00','16:00')`,
-            [d],
-          );
-        }
-        for (const d of saturdays) {
-          await client.query(
-            `INSERT INTO pickups (pickup_date, start_time, end_time) VALUES ($1,'10:00','13:00')`,
-            [d],
-          );
-        }
-        console.log(`✔ ${fridays.length + saturdays.length} recolecciones de ejemplo`);
       }
       await audit(client, 'system.seed', 'system', 'seed', 'Contenido de ejemplo cargado');
     }

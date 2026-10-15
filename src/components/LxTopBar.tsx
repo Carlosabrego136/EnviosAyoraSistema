@@ -4,21 +4,21 @@ import { whatsappLink, type SettingsMap } from '@/lib/settings';
 import { Icon } from './Icon';
 import { LiveClock } from './LiveClock';
 
-/** Barra superior: marca a la izquierda, botón biselado de WhatsApp a la derecha. */
+/** Barra superior: logo completo de Fénix en panel marino a la izquierda; cotizar y WhatsApp a la derecha. */
 export function LxTopBar({ settings }: { settings: SettingsMap }) {
   return (
     <div className="lx-top">
-      <Link href="/" className="lx-brand" aria-label={`${settings.brand_name} — inicio`}>
-        <Image src="/emblem.png" alt="" width={351} height={452} sizes="72px" className="lx-brand__emblem" priority />
-        <span className="lx-brand__text">
-          <span className="lx-brand__name">{settings.brand_name}</span>
-          <span className="lx-brand__tag">{settings.brand_tagline}</span>
-        </span>
+      <Link href="/" className="lx-brand" aria-label={`${settings.brand_name} · ${settings.brand_tagline} — inicio`}>
+        <Image src="/logo.png" alt="" width={878} height={467} sizes="(min-width: 640px) 170px, 120px" className="lx-brand__logo" priority />
       </Link>
       <div className="lx-top__right">
         <LiveClock />
-        <a className="lx-cta" href={whatsappLink(settings)} target="_blank" rel="noopener noreferrer">
-          <span>Cotiza por WhatsApp</span>
+        <Link className="lx-cta lx-cta--q" href="/cotizar">
+          <span>Cotizar envío</span>
+          <Icon name="calc" size={14} />
+        </Link>
+        <a className="lx-cta lx-cta--wa" href={whatsappLink(settings)} target="_blank" rel="noopener noreferrer">
+          <span>WhatsApp</span>
           <Icon name="whatsapp" size={14} />
         </a>
       </div>

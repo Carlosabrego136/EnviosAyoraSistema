@@ -2,7 +2,7 @@ import 'server-only';
 import type { PoolClient } from 'pg';
 import { writeAudit, type Actor } from './audit';
 import { query, withTransaction } from './db';
-import { NotFoundError, ValidationError } from './errors';
+import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { logger } from './logger';
 import { writableFields, type FieldDef, type ResourceDef } from './resources';
 import { cleanLine, cleanMultiline, type RequestContext } from './security';
@@ -15,7 +15,7 @@ const q = (identifier: string) => `"${identifier.replace(/"/g, '""')}"`;
 
 export async function listRows(
   def: ResourceDef,
-  opts: { limit?: number; offset?: number; filters?: Record<string, string> } = {},
+  opts: { limit?: number; offset?: number; filters?: Record<string, string>; search?: string } = {},
 ): Promise<{ rows: Row[]; total: number }> {
   const limit = Math.min(Math.max(opts.limit ?? 100, 1), 500);
   const offset = Math.max(opts.offset ?? 0, 0);
@@ -27,6 +27,12 @@ export async function listRows(
     if (!allowed.has(column) || !value) continue; // solo columnas de la lista blanca
     params.push(value);
     where.push(`${q(column)} = $${params.length}`);
+  }
+  const term = (opts.search ?? '').trim().slice(0, 80);
+  if (term && def.searchColumns?.length) {
+    params.push(`%${term.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+    const idx = params.length;
+    where.push(`(${def.searchColumns.map((c) => `${q(c)}::text ILIKE $${idx}`).join(' OR ')})`);
   }
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
@@ -49,13 +55,14 @@ function parseField(field: FieldDef, raw: FormDataEntryValue | null, errors: Rec
   const label = field.label;
 
   if (field.type === 'checkbox') return raw === 'on' || raw === 'true' || raw === '1';
+  if (field.type === 'image') return undefined; // las imágenes se procesan aparte (ver actions)
 
   const text =
     field.type === 'textarea' ? cleanMultiline(raw, field.max ?? 2000) : cleanLine(raw, field.max ?? 200);
 
   if (text === '') {
     if (field.required) errors[field.name] = `${label} es obligatorio.`;
-    if (field.type === 'number') return field.required ? 0 : null;
+    if (field.type === 'number' || field.type === 'decimal') return field.required ? 0 : null;
     return field.type === 'date' || field.type === 'time' ? null : '';
   }
 
@@ -69,6 +76,21 @@ function parseField(field: FieldDef, raw: FormDataEntryValue | null, errors: Rec
       if (field.min !== undefined && n < field.min) errors[field.name] = `${label} debe ser al menos ${field.min}.`;
       if (field.max !== undefined && n > field.max) errors[field.name] = `${label} no puede ser mayor a ${field.max}.`;
       return n;
+    }
+    case 'decimal': {
+      const n = Number(text.replace(',', '.'));
+      if (!Number.isFinite(n)) {
+        errors[field.name] = `${label} debe ser un número.`;
+        return 0;
+      }
+      const rounded = Math.round(n * 100) / 100;
+      if (field.min !== undefined && rounded < field.min) errors[field.name] = `${label} debe ser al menos ${field.min}.`;
+      if (field.max !== undefined && rounded > field.max) errors[field.name] = `${label} no puede ser mayor a ${field.max}.`;
+      return rounded;
+    }
+    case 'url': {
+      if (!/^https:\/\/[^\s]+$/.test(text)) errors[field.name] = `${label}: el enlace debe empezar con https://`;
+      return text;
     }
     case 'date': {
       const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
@@ -102,7 +124,8 @@ export function parseForm(def: ResourceDef, formData: FormData, editing: boolean
   const errors: Record<string, string> = {};
   const values: Record<string, unknown> = {};
   for (const field of writableFields(def, editing)) {
-    values[field.name] = parseField(field, formData.get(field.name), errors);
+    const parsed = parseField(field, formData.get(field.name), errors);
+    if (parsed !== undefined) values[field.name] = parsed;
   }
   if (Object.keys(errors).length === 0 && def.validate) Object.assign(errors, def.validate(values));
   if (Object.keys(errors).length > 0) throw new ValidationError(errors);
@@ -126,6 +149,24 @@ function diff(def: ResourceDef, before: Row, after: Row): string[] {
     if (normalize(field, before[name]) !== normalize(field, after[name])) changed.push(name);
   }
   return changed;
+}
+
+function imageColumns(def: ResourceDef): string[] {
+  return def.fields.filter((f) => f.type === 'image').map((f) => f.name);
+}
+
+/** Borra de la tabla media las imágenes que dejaron de usarse (misma transacción). */
+async function dropMedia(client: PoolClient, ids: unknown[]): Promise<void> {
+  for (const id of ids) {
+    if (typeof id === 'number' && id > 0) await client.query('DELETE FROM media WHERE id = $1', [id]);
+  }
+}
+
+function mapConflict(def: ResourceDef, err: unknown): never {
+  if (err instanceof ConflictError && def.conflictField) {
+    throw new ValidationError({ [def.conflictField.name]: def.conflictField.message });
+  }
+  throw err;
 }
 
 async function lockRow(client: PoolClient, def: ResourceDef, id: number): Promise<Row> {
@@ -160,7 +201,7 @@ export async function createRow(
       ctx,
     });
     return created.id;
-  });
+  }).catch((err) => mapConflict(def, err));
   logger.info('crud.create', { entity: def.table, id, actor: actor.id });
   return id;
 }
@@ -184,6 +225,12 @@ export async function updateRow(
     const changed = diff(def, before, after);
     if (changed.length === 0) return { changed };
 
+    // Si se reemplazó o quitó una imagen, la anterior se elimina para no acumular archivos huérfanos.
+    await dropMedia(
+      client,
+      imageColumns(def).filter((c) => before[c] && before[c] !== after[c]).map((c) => before[c]),
+    );
+
     await writeAudit(client, {
       actor,
       action: `${def.key}.update`,
@@ -195,7 +242,7 @@ export async function updateRow(
       ctx,
     });
     return { changed };
-  });
+  }).catch((err) => mapConflict(def, err));
   logger.info('crud.update', { entity: def.table, id, actor: actor.id, changed: result.changed });
   return result;
 }
@@ -204,6 +251,7 @@ export async function deleteRow(def: ResourceDef, id: number, actor: Actor, ctx:
   await withTransaction(async (client) => {
     const before = await lockRow(client, def, id);
     await client.query(`DELETE FROM ${q(def.table)} WHERE id = $1`, [id]);
+    await dropMedia(client, imageColumns(def).map((c) => before[c]));
     await writeAudit(client, {
       actor,
       action: `${def.key}.delete`,
