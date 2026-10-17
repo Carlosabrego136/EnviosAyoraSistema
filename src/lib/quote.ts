@@ -73,6 +73,17 @@ export function findQuote(
   return { rate, billedKg, total: rate.price_type === 'per_kg' ? Math.round(rate.price * billedKg * 100) / 100 : rate.price };
 }
 
+/** Tarimas: precio fijo por tarima según paquetería y estado de destino (sin rango de peso). */
+export function findPalletRate(rates: Rate[], q: { carrier: string; destination: string }): Rate | null {
+  const norm = (v: string) => v.trim().toLowerCase();
+  if (!q.carrier || !q.destination) return null;
+  return (
+    rates.find(
+      (r) => r.service_slug === 'tarimas' && norm(r.carrier) === norm(q.carrier) && norm(r.destination) === norm(q.destination),
+    ) ?? null
+  );
+}
+
 /** Servicios predeterminados del cotizador si la base de datos aún no tiene los 4 servicios cargados. */
 export const DEFAULT_QUOTE_SERVICES = [
   { slug: 'aereo', name: 'Envío aéreo', carriers: ['Estafeta', 'Volaris', 'DHL', 'FedEx'], coverage: 'Todo México' },

@@ -87,7 +87,7 @@ export default async function QuotePage({ searchParams }: { searchParams: Promis
                           {list.map((r, i) => (
                             <tr key={i}>
                               <td>{r.destination}</td>
-                              <td>{r.weight_to > 0 ? `${formatKg(r.weight_from)} – ${formatKg(r.weight_to)}` : `Desde ${formatKg(r.weight_from)}`}</td>
+                              <td>{r.service_slug === 'tarimas' ? 'Por tarima' : r.weight_to > 0 ? `${formatKg(r.weight_from)} – ${formatKg(r.weight_to)}` : `Desde ${formatKg(r.weight_from)}`}</td>
                               <td>{formatMXN(r.price)}{r.price_type === 'per_kg' ? ' / kg' : ''}</td>
                             </tr>
                           ))}

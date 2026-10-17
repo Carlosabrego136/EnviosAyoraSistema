@@ -31,6 +31,9 @@ export default async function ImportPage() {
 terrestre ; Paquete Express ; Zona 1 ; 1 ; 2 ; 175
 aereo ; FedEx ; ; 0 ; 1 ; 260
 bajapack ; Baja Pack Express ; Baja California ; 0 ; 5 ; 120`}</pre>
+          <p className="muted">
+            <strong>Tarimas:</strong> una fila por paquetería y estado, con peso desde 0 hasta 99999 y el precio <em>por tarima</em>; el cotizador lo multiplica por el número de tarimas.
+          </p>
           <p className="muted">Los precios del ejemplo son solo ilustrativos. Si la primera fila trae encabezados, se omite sola.</p>
         </div>
         <ImportForm kind="rates" />

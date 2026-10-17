@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { carriersFor, destinationsFor, findQuote, formatKg, formatMXN, volumetricKg, type Rate } from '@/lib/quote';
+import { carriersFor, destinationsFor, findPalletRate, findQuote, formatKg, formatMXN, volumetricKg, type Rate } from '@/lib/quote';
 import { Icon } from './Icon';
 
 export interface QuoteService {
@@ -63,6 +63,9 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
     !isPallet && serviceHasRates && weightNum > 0
       ? findQuote(rates, { service: slug, carrier: carrierValue, destination: destinationValue, weight: weightNum })
       : null;
+  const palletCount = Math.min(99, Math.max(1, Math.floor(Number(pallets)) || 1));
+  const palletRate = isPallet ? findPalletRate(rates, { carrier: carrierValue, destination: destinationValue }) : null;
+  const palletTotal = palletRate ? Math.round(palletRate.price * palletCount * 100) / 100 : 0;
   const grandTotal = quote ? Math.round((quote.total + fee) * 100) / 100 : 0;
 
   const message = useMemo(() => {
@@ -71,6 +74,7 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
     if (destinationValue) lines.push(`Destino: ${destinationValue}`);
     if (isPallet) {
       if (pallets) lines.push(`Tarimas: ${pallets}`);
+      if (palletRate) lines.push(`Precio estimado en el sitio: ${formatMXN(palletTotal)} (${formatMXN(palletRate.price)} por tarima × ${palletCount})`);
       if (weightNum > 0) lines.push(`Peso aproximado: ${formatKg(weightNum)}`);
       if (details) lines.push(`Detalles: ${details}`);
     } else if (weightNum > 0) {
@@ -81,7 +85,7 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
       if (quote) lines.push(`Precio estimado en el sitio: ${formatMXN(grandTotal)}`);
     }
     return lines.join('\n');
-  }, [brandName, service, carrierValue, destinationValue, isPallet, pallets, weightNum, realKg, volKg, dimL, dimW, dimH, fee, grandTotal, details, quote]);
+  }, [brandName, service, carrierValue, destinationValue, isPallet, pallets, palletRate, palletTotal, palletCount, weightNum, realKg, volKg, dimL, dimW, dimH, fee, grandTotal, details, quote]);
 
   const waHref = `${whatsappBase}?text=${encodeURIComponent(message)}`;
 
@@ -208,7 +212,20 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
         </div>
 
         <div className={`lx-quote__result ${quote ? 'is-priced' : ''}`} aria-live="polite">
-          {isPallet ? (
+          {isPallet && palletRate ? (
+            <>
+              <span className="lx-quote__label">Precio estimado</span>
+              <strong>{formatMXN(palletTotal)}</strong>
+              <small>
+                {palletRate.carrier} · {palletRate.destination} · {formatMXN(palletRate.price)} por tarima × {palletCount} {palletCount === 1 ? 'tarima' : 'tarimas'}
+              </small>
+              <small>El precio final se confirma según las medidas y el peso de la tarima.</small>
+            </>
+          ) : isPallet && needCarrier ? (
+            <p>Elige la paquetería para ver el precio estimado por tarima.</p>
+          ) : isPallet && needDest ? (
+            <p>Elige el estado de destino para ver el precio estimado por tarima.</p>
+          ) : isPallet ? (
             <p>Los envíos de gran volumen se cotizan de forma personalizada. Mándanos los datos y te respondemos por WhatsApp.</p>
           ) : !serviceHasRates ? (
             <p>Para este servicio te cotizamos directo por WhatsApp. Escribe el peso y el destino y te enviamos el precio.</p>
@@ -237,7 +254,7 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
         </div>
 
         <a className="lx-cta lx-cta--wa lx-cta--block" href={waHref} target="_blank" rel="noopener noreferrer">
-          <Icon name="whatsapp" size={16} /> {quote ? 'Confirmar por WhatsApp' : 'Cotizar por WhatsApp'}
+          <Icon name="whatsapp" size={16} /> {quote || palletRate ? 'Confirmar por WhatsApp' : 'Cotizar por WhatsApp'}
         </a>
         <p className="lx-quote__note">{note}</p>
       </div>
