@@ -379,8 +379,8 @@ export default async function HomePage() {
         <div className="lx-wrap">
           <SectionHead tag="de nuestra parte" title="Un mensaje para ti" id="mensaje-title" />
           <div className="lx-owner">
-            <Motion className="lx-owner__photo lx-chamfer" style={{ ['--c' as string]: '28px' }}>
-              <div className="lx-chamfer__in lx-owner__frame">
+            <Motion className={`lx-owner__photo lx-chamfer${post?.photo_id ? ' lx-owner__photo--full' : ''}`} style={{ ['--c' as string]: '28px' }}>
+              <div className={`lx-chamfer__in lx-owner__frame${post?.photo_id ? ' lx-owner__frame--full' : ''}`}>
                 {post?.photo_id ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={`/media/${post.photo_id}`} alt={post.title} loading="lazy" />

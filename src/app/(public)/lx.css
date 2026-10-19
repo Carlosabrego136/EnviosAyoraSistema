@@ -2741,3 +2741,9 @@ div.lx-top9__link { cursor: default; }
 @media (min-width: 1200px) { .lx-brand__logo { width: 250px; } }
 .lx-footer__logo { width: 280px; max-width: 100%; height: auto; border-radius: 14px; box-shadow: 0 0 0 1px rgba(197, 206, 220, 0.35); }
 .lx-owner__frame img.lx-owner__logo { object-fit: cover; padding: 0; }
+
+/* Foto del mensaje personal: se muestra completa, sin recortar (con altura máxima en pantallas grandes) */
+.lx-owner__photo--full { width: fit-content; max-width: 100%; justify-self: center; }
+.lx-owner__frame--full { aspect-ratio: auto; display: block; }
+.lx-owner__frame--full img { display: block; width: auto; max-width: 100%; height: auto; max-height: 640px; object-fit: contain; margin: 0 auto; }
+@media (max-width: 899px) { .lx-owner__frame--full img { width: 100%; max-height: none; } }
