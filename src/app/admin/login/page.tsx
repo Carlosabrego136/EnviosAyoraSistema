@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main id="contenido" className="adm-login">
       <div className="adm-login__card card">
-        <Image src="/logo.png" alt="Fénix · Recolección y Envíos" width={878} height={467} priority className="adm-login__logo" />
+        <Image src="/logo-envios-ayora.jpg" alt="Envíos Ayora · Fénix Recolección y Envíos" width={1376} height={768} priority className="adm-login__logo" />
         <h1>Panel de administración</h1>
         {!isDbConfigured() && (
           <p className="form-alert" role="alert">

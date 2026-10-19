@@ -2733,3 +2733,11 @@ div.lx-top9__link { cursor: default; }
 .lx-hero__register { display: flex; width: fit-content; max-width: 100%; white-space: normal; font-size: 11px; padding: 11px 16px; margin: 14px auto 0; text-align: center; justify-content: center; background: #fff; color: var(--navy); box-shadow: 0 6px 20px rgba(11, 26, 61, 0.2); }
 .lx-hero__register:hover { background: var(--bg-b); }
 #registro-cliente { scroll-margin-top: 96px; }
+
+/* ═══ Logo nuevo (ENVIOS AYORA + Fénix): imagen completa, centrada, sin recortes ═══ */
+.lx-brand { padding: 0; overflow: hidden; background: #07122b; box-shadow: none; }
+.lx-brand__logo { display: block; width: 190px; height: auto; filter: none; }
+@media (min-width: 640px) { .lx-brand { padding: 0; } .lx-brand__logo { width: 240px; height: auto; } }
+@media (min-width: 1200px) { .lx-brand__logo { width: 250px; } }
+.lx-footer__logo { width: 280px; max-width: 100%; height: auto; border-radius: 14px; box-shadow: 0 0 0 1px rgba(197, 206, 220, 0.35); }
+.lx-owner__frame img.lx-owner__logo { object-fit: cover; padding: 0; }

@@ -16,7 +16,7 @@ export function LxFooter({ settings }: { settings: SettingsMap }) {
       <div className="lx-footer__inner">
         <div className="lx-footer__top">
           <div className="lx-footer__brand">
-            <Image src="/logo.png" alt={`${settings.brand_name} · ${settings.brand_tagline}`} width={878} height={467} sizes="220px" className="lx-footer__logo" />
+            <Image src="/logo-envios-ayora.jpg" alt={`${settings.brand_name} · ${settings.brand_tagline}`} width={1376} height={768} sizes="280px" className="lx-footer__logo" />
             {settings.footer_quote && <p>“{settings.footer_quote}”</p>}
             {sedes.map((x) => (
               <p key={x.city} className="lx-footer__zone">

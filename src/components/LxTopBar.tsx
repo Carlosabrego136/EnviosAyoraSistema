@@ -9,7 +9,7 @@ export function LxTopBar({ settings }: { settings: SettingsMap }) {
   return (
     <div className="lx-top">
       <Link href="/" className="lx-brand" aria-label={`${settings.brand_name} · ${settings.brand_tagline} — inicio`}>
-        <Image src="/logo.png" alt="" width={878} height={467} sizes="(min-width: 640px) 170px, 120px" className="lx-brand__logo" priority />
+        <Image src="/logo-envios-ayora.jpg" alt="" width={1376} height={768} sizes="(min-width: 640px) 280px, 200px" className="lx-brand__logo" priority />
       </Link>
       <div className="lx-top__right">
         <LiveClock />

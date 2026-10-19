@@ -130,7 +130,7 @@ export default async function HomePage() {
     alternateName: s.brand_legal || undefined,
     description: `${s.brand_name} ${s.brand_tagline}`,
     url: process.env.NEXT_PUBLIC_SITE_URL || undefined,
-    logo: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')}/logo.png` : undefined,
+    logo: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')}/logo-envios-ayora.jpg` : undefined,
     telephone: s.whatsapp_number ? `+${s.whatsapp_number.replace(/\D/g, '')}` : undefined,
     email: s.contact_email || undefined,
     address: { '@type': 'PostalAddress', streetAddress: s.tijuana_address || undefined, addressLocality: 'Tijuana', addressRegion: 'Baja California', addressCountry: 'MX' },
@@ -386,7 +386,7 @@ export default async function HomePage() {
                   <img src={`/media/${post.photo_id}`} alt={post.title} loading="lazy" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="lx-owner__logo" src="/logo.png" alt={`${s.brand_name} · ${s.brand_tagline}`} loading="lazy" />
+                  <img className="lx-owner__logo" src="/logo-envios-ayora.jpg" alt={`${s.brand_name} · ${s.brand_tagline}`} loading="lazy" />
                 )}
               </div>
             </Motion>
