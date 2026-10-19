@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { submitLeadAction } from '@/app/actions';
 import type { ActionState } from '@/lib/errors';
@@ -23,6 +23,17 @@ export function LeadForm({ whatsappHref }: { whatsappHref: string }) {
   const [state, action] = useActionState(submitLeadAction, INITIAL);
   const fe = state.fieldErrors ?? {};
   const v = state.values ?? {};
+  const [kind, setKind] = useState<string>(v.kind ?? 'cliente');
+
+  // Los botones "Registrarme" del sitio llevan a /#registro-cliente: se deja elegida esa opción.
+  useEffect(() => {
+    const apply = () => {
+      if (window.location.hash === '#registro-cliente') setKind('cliente');
+    };
+    apply();
+    window.addEventListener('hashchange', apply);
+    return () => window.removeEventListener('hashchange', apply);
+  }, []);
 
   if (state.ok) {
     return (
@@ -49,7 +60,8 @@ export function LeadForm({ whatsappHref }: { whatsappHref: string }) {
 
       <div className="field">
         <label htmlFor="kind">¿Qué necesitas?</label>
-        <select id="kind" name="kind" defaultValue={v.kind ?? 'registro'}>
+        <select id="kind" name="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
+          <option value="cliente">Registrarme como cliente de recolección y envío</option>
           <option value="registro">Registrarme como comerciante</option>
           <option value="contacto">Hacer una consulta</option>
         </select>
@@ -62,7 +74,7 @@ export function LeadForm({ whatsappHref }: { whatsappHref: string }) {
           {fe.name && <span id="err-name" className="field__error">{fe.name}</span>}
         </div>
         <div className="field">
-          <label htmlFor="business">Negocio</label>
+          <label htmlFor="business">{kind === 'cliente' ? 'Negocio (opcional)' : 'Negocio'}</label>
           <input id="business" name="business" type="text" autoComplete="organization" maxLength={120} defaultValue={v.business} />
         </div>
       </div>
@@ -82,7 +94,7 @@ export function LeadForm({ whatsappHref }: { whatsappHref: string }) {
 
       <div className="field">
         <label htmlFor="message">Mensaje (opcional)</label>
-        <textarea id="message" name="message" rows={3} maxLength={1500} defaultValue={v.message} placeholder="Cuéntanos qué envías y a dónde." />
+        <textarea id="message" name="message" rows={3} maxLength={1500} defaultValue={v.message} placeholder={kind === 'cliente' ? 'Cuéntanos dónde recolectamos y a qué ciudad envías.' : 'Cuéntanos qué envías y a dónde.'} />
       </div>
 
       {/* Campo trampa anti-bots: invisible para personas. */}

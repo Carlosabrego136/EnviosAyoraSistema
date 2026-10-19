@@ -18,6 +18,7 @@ const LINKS: LxLink[] = [
   { href: '/rastreo', label: 'Rastrear' },
   { href: '/#comunicados', label: 'Comunicados', section: 'comunicados' },
   { href: '/#ruta', label: 'Ruta del Saldo', section: 'ruta' },
+  { href: '/#registro-cliente', label: 'Registrarme' },
 ];
 
 export default async function PublicLayout({ children }: { children: ReactNode }) {

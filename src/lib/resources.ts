@@ -463,7 +463,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
     permission: 'leads',
     singular: 'solicitud',
     plural: 'Solicitudes',
-    description: 'Registros de comunidad y mensajes de contacto recibidos desde el sitio.',
+    description: 'Registros de comerciantes, de clientes de recolección y envío, y consultas recibidas desde el sitio.',
     orderBy: 'created_at DESC',
     canCreate: false,
     canDelete: true,

@@ -2582,7 +2582,7 @@ html.js .lx-rise:not(.is-in) .lx-ring__seg {
 .lx-owner { display: grid; gap: 28px; margin-top: 32px; align-items: center; }
 @media (min-width: 900px) { .lx-owner { grid-template-columns: 5fr 7fr; gap: 56px; } }
 .lx-owner__frame { aspect-ratio: 4 / 3; display: grid; place-items: center; background: #fff; overflow: hidden; }
-.lx-owner__frame img { width: 100%; height: 100%; object-fit: cover; }
+.lx-owner__frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
 .lx-owner__frame img.lx-owner__logo { object-fit: contain; padding: 28px; }
 .lx-owner__who { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); }
 .lx-owner__text h3 { margin: 0 0 12px; font-size: clamp(26px, 4vw, 38px); font-weight: 700; color: var(--navy); }
@@ -2728,3 +2728,8 @@ div.lx-top9__link { cursor: default; }
 .lx-cmp__pallets li { display: flex; justify-content: space-between; font-size: 14px; color: var(--steel); }
 .lx-cmp__pallets small { font-size: 12px; color: var(--mid); }
 .lx-cmp__info .lx-cmp__best { color: #fff; font-size: 11px; }
+
+/* Registro de clientes: botón del inicio y destino del ancla */
+.lx-hero__register { display: flex; width: fit-content; max-width: 100%; white-space: normal; font-size: 11px; padding: 11px 16px; margin: 14px auto 0; text-align: center; justify-content: center; background: #fff; color: var(--navy); box-shadow: 0 6px 20px rgba(11, 26, 61, 0.2); }
+.lx-hero__register:hover { background: var(--bg-b); }
+#registro-cliente { scroll-margin-top: 96px; }

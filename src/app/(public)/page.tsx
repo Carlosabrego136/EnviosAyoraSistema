@@ -618,7 +618,7 @@ export default async function HomePage() {
               </ul>
             </div>
             <Motion delay={150} className="lx-formwrap">
-              <div className="lx-formcard lx-formcard--blue">
+              <div id="registro-cliente" className="lx-formcard lx-formcard--blue">
                 <div className="lx-formcard__bar">
                   <h3>{s.community_title}</h3>
                   <p>{s.community_text}</p>

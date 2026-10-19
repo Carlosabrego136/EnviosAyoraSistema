@@ -7,7 +7,7 @@ import { assertLeadAllowed } from './rate-limit';
 import { cleanLine, cleanMultiline, type RequestContext } from './security';
 
 const leadSchema = z.object({
-  kind: z.enum(['registro', 'contacto']),
+  kind: z.enum(['registro', 'contacto', 'cliente']),
   name: z.string().min(2, 'Escribe tu nombre.').max(120),
   business: z.string().max(120),
   phone: z
@@ -33,7 +33,7 @@ export async function submitLead(formData: FormData, ctx: RequestContext): Promi
   }
 
   const parsed = leadSchema.safeParse({
-    kind: formData.get('kind') === 'contacto' ? 'contacto' : 'registro',
+    kind: ['contacto', 'cliente'].includes(String(formData.get('kind'))) ? String(formData.get('kind')) : 'registro',
     name: cleanLine(formData.get('name'), 120),
     business: cleanLine(formData.get('business'), 120),
     phone: cleanLine(formData.get('phone'), 30),

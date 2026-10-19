@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
 
@@ -87,6 +88,10 @@ export function LxHero({ slides, whatsappHref }: { slides: LxSlide[]; whatsappHr
           );
         })}
       </div>
+
+      <Link href="/#registro-cliente" className="lx-cta lx-hero__register">
+        Registrarme como cliente de recolección y envío <Icon name="arrow" size={14} />
+      </Link>
 
       {count > 1 && (
         <div className="lx-hero__controls">
