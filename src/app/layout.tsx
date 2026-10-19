@@ -34,9 +34,9 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: s.brand_name,
       title,
       description,
-      images: [{ url: '/logo.png', width: 878, height: 467, alt: title }],
+      images: [{ url: '/og-fenix.jpg', width: 1200, height: 670, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title, description, images: ['/logo.png'] },
+    twitter: { card: 'summary_large_image', title, description, images: ['/og-fenix.jpg'] },
     robots: { index: true, follow: true },
   };
 }

@@ -3,12 +3,14 @@
 import { useMemo, useState } from 'react';
 import { carriersFor, destinationsFor, findPalletRate, findQuote, formatKg, formatMXN, volumetricKg, type Rate } from '@/lib/quote';
 import { Icon } from './Icon';
+import { QuoteCompare } from './QuoteCompare';
 
 export interface QuoteService {
   slug: string;
   name: string;
   carriers: string[];
   coverage: string;
+  eta?: string;
 }
 
 interface Props {
@@ -27,6 +29,7 @@ const OTHER = '__otro';
 
 /** Cotizador: calcula con el tabulador cargado en el panel y confirma por WhatsApp con el mensaje ya armado. */
 export function QuoteTool({ rates, services, whatsappBase, brandName, note, initialSlug, extendedFee = 0, extendedUrl = '' }: Props) {
+  const [mode, setMode] = useState<'compare' | 'service'>(initialSlug ? 'service' : 'compare');
   const [slug, setSlug] = useState(services.some((s) => s.slug === initialSlug) ? (initialSlug as string) : (services[0]?.slug ?? ''));
   const [carrier, setCarrier] = useState('');
   const [dest, setDest] = useState('');
@@ -100,11 +103,19 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
         <span className="lx-quote__icon"><Icon name="calc" size={20} /></span>
         <div>
           <h3>Calcula tu envío</h3>
-          <p>Elige el servicio, el destino y el peso.</p>
+          <p>{mode === 'compare' ? 'Escribe el destino y el peso y compara todas las opciones.' : 'Elige el servicio, el destino y el peso.'}</p>
         </div>
       </div>
 
       <div className="lx-quote__body">
+        <div className="lx-quote__mode" role="tablist" aria-label="Tipo de cotización">
+          <button type="button" role="tab" aria-selected={mode === 'compare'} className={mode === 'compare' ? 'is-active' : undefined} onClick={() => setMode('compare')}>Comparar opciones</button>
+          <button type="button" role="tab" aria-selected={mode === 'service'} className={mode === 'service' ? 'is-active' : undefined} onClick={() => setMode('service')}>Elegir servicio</button>
+        </div>
+        {mode === 'compare' ? (
+          <QuoteCompare rates={rates} services={services} whatsappBase={whatsappBase} brandName={brandName} extendedFee={extendedFee} extendedUrl={extendedUrl} />
+        ) : (
+        <>
         <div className="lx-quote__tabs" role="tablist" aria-label="Servicio">
           {services.map((s) => (
             <button
@@ -256,6 +267,8 @@ export function QuoteTool({ rates, services, whatsappBase, brandName, note, init
         <a className="lx-cta lx-cta--wa lx-cta--block" href={waHref} target="_blank" rel="noopener noreferrer">
           <Icon name="whatsapp" size={16} /> {quote || palletRate ? 'Confirmar por WhatsApp' : 'Cotizar por WhatsApp'}
         </a>
+        </>
+        )}
         <p className="lx-quote__note">{note}</p>
       </div>
     </div>

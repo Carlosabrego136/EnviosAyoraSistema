@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { safeUrl, whatsappLink, type SettingsMap } from '@/lib/settings';
 import { Icon } from './Icon';
+import { sedesOf } from './Sedes';
 
 export function LxFooter({ settings }: { settings: SettingsMap }) {
   const year = new Date().getFullYear();
@@ -9,6 +10,7 @@ export function LxFooter({ settings }: { settings: SettingsMap }) {
   const group = safeUrl(settings.whatsapp_group_url);
   const fb = safeUrl(settings.facebook_url);
   const tt = safeUrl(settings.tiktok_url);
+  const sedes = sedesOf(settings);
   return (
     <footer className="lx-footer">
       <div className="lx-footer__inner">
@@ -16,9 +18,20 @@ export function LxFooter({ settings }: { settings: SettingsMap }) {
           <div className="lx-footer__brand">
             <Image src="/logo.png" alt={`${settings.brand_name} · ${settings.brand_tagline}`} width={878} height={467} sizes="220px" className="lx-footer__logo" />
             {settings.footer_quote && <p>“{settings.footer_quote}”</p>}
-            {(settings.location_text || settings.location_badge) && (
-              <p className="lx-footer__zone"><Icon name="pin" size={14} /> {settings.location_text || settings.location_badge}</p>
-            )}
+            {sedes.map((x) => (
+              <p key={x.city} className="lx-footer__zone">
+                <Icon name="pin" size={14} />
+                <span>
+                  <strong>{x.city}:</strong> {x.address}
+                  {x.mapUrl && (
+                    <>
+                      {' '}
+                      <a href={x.mapUrl} target="_blank" rel="noopener noreferrer">Ver mapa</a>
+                    </>
+                  )}
+                </span>
+              </p>
+            ))}
             {settings.owner_names && <p className="lx-footer__zone">{settings.owner_names}</p>}
           </div>
           <div>

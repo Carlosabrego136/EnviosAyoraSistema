@@ -21,7 +21,7 @@ export default async function QuotePage({ searchParams }: { searchParams: Promis
   const services = c.services.some((x) => SERVICE_SLUGS.includes(x.slug as never))
     ? c.services
         .filter((x) => SERVICE_SLUGS.includes(x.slug as never))
-        .map((x) => ({ slug: x.slug, name: x.name, carriers: splitCarriers(x.carriers), coverage: x.coverage }))
+        .map((x) => ({ slug: x.slug, name: x.name, carriers: splitCarriers(x.carriers), coverage: x.coverage, eta: x.eta_text }))
     : DEFAULT_QUOTE_SERVICES;
 
   const groups = new Map<string, typeof rates>();

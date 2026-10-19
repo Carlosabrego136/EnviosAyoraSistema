@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { CarrierChips, ServiceLogo, TopNine } from '@/components/HomeBits';
 import { Icon, type IconName } from '@/components/Icon';
@@ -7,6 +8,7 @@ import { LxTopBar } from '@/components/LxTopBar';
 import { NewsFeatured, NewsItem, NewsMarquee } from '@/components/LxNews';
 import { Motion } from '@/components/Motion';
 import { QuoteTool } from '@/components/QuoteTool';
+import { SedesCards } from '@/components/Sedes';
 import { getSiteContent, type Service } from '@/lib/content';
 import { getPublicMerchants } from '@/lib/directory';
 import { dateParts, daysBetween, formatLongDate, formatTime, relativeDays } from '@/lib/format';
@@ -97,7 +99,7 @@ export default async function HomePage() {
   const quoteServices = c.services.some((x) => SERVICE_SLUGS.includes(x.slug as never))
     ? c.services
         .filter((x) => SERVICE_SLUGS.includes(x.slug as never))
-        .map((x) => ({ slug: x.slug, name: x.name, carriers: splitCarriers(x.carriers), coverage: x.coverage }))
+        .map((x) => ({ slug: x.slug, name: x.name, carriers: splitCarriers(x.carriers), coverage: x.coverage, eta: x.eta_text }))
     : DEFAULT_QUOTE_SERVICES;
 
   const activeMerchants = merchants.filter((m) => m.status === 'activo').length;
@@ -131,7 +133,7 @@ export default async function HomePage() {
     logo: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')}/logo.png` : undefined,
     telephone: s.whatsapp_number ? `+${s.whatsapp_number.replace(/\D/g, '')}` : undefined,
     email: s.contact_email || undefined,
-    address: { '@type': 'PostalAddress', addressLocality: 'Tijuana', addressRegion: 'Baja California', addressCountry: 'MX' },
+    address: { '@type': 'PostalAddress', streetAddress: s.tijuana_address || undefined, addressLocality: 'Tijuana', addressRegion: 'Baja California', addressCountry: 'MX' },
     areaServed: { '@type': 'Country', name: 'México' },
   };
 
@@ -282,7 +284,7 @@ export default async function HomePage() {
               </ol>
               <div className="lx-quotegrid__pick">
                 <Icon name="calendar" size={18} />
-                <p>Recolección cada <strong>{weekdayName.toLowerCase()}</strong> de {pickupWindow}.</p>
+                <p>Recolección cada <strong>{weekdayName.toLowerCase()}</strong> de {pickupWindow}</p>
               </div>
               <Link className="lx-arrowlink" href="/cotizar">
                 Ver el tabulador completo
@@ -630,6 +632,17 @@ export default async function HomePage() {
               </div>
             </Motion>
           </div>
+        </div>
+      </section>
+
+      {/* ── 11 · Sedes ────────────────────────────────────── */}
+      <section id="sedes" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="sedes-title">
+        <div className="lx-wrap">
+          <SectionHead tag="dónde estamos" title="Nuestras sedes" id="sedes-title" />
+          <Motion className="lx-banner">
+            <Image src="/fenix-banner.jpg" alt={`${s.brand_name} · ${s.brand_tagline}`} width={1376} height={768} sizes="(min-width: 960px) 880px, 92vw" className="lx-banner__img" />
+          </Motion>
+          <SedesCards settings={s} />
         </div>
       </section>
     </>
