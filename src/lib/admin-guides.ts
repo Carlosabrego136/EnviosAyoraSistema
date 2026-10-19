@@ -50,7 +50,7 @@ export const GUIDES: Record<string, Guide> = {
   },
   comerciantes: {
     what: 'El directorio público de comerciantes. Solo se muestran su nombre, categoría, estatus y un botón "Visitar perfil" que lleva a su Facebook. No se publican teléfonos.',
-    steps: ['Pulsa "Agregar comerciante" y escribe su nombre (del negocio o de su Facebook), categoría, estatus y el enlace a su perfil.', 'Estatus: Activo, Pendiente de renovación, Baja o Riesgo. Usa la categoría "Variado" cuando no encaje en otra.', 'Para cargar muchos de golpe usa "Importar desde Excel".', 'Para el Top 9, edita al comerciante y elige su posición del 1 al 9. Cámbialos cada mes.', 'Quita la palomita de "Mostrar en el directorio" para ocultarlo sin borrarlo.'],
+    steps: ['Pulsa "Agregar comerciante" y escribe su nombre (del negocio o de su Facebook), categoría, estatus y el enlace a su perfil.', 'Estatus: Activo, Pendiente de renovación, Baja o Riesgo. La categoría se elige de una lista fija; usa "Variado" cuando no encaje en otra.', 'Para cargar muchos de golpe usa "Importar desde Excel".', 'Para el Top 9, edita al comerciante y elige su posición del 1 al 9. Cámbialos cada mes.', 'Quita la palomita de "Mostrar en el directorio" para ocultarlo sin borrarlo.'],
     newLabel: 'Agregar comerciante',
     where: 'Comerciantes y Top 9',
   },
@@ -79,7 +79,7 @@ export const FIELD_HELP: Record<string, string> = {
   sort_order: 'Número para ordenar: el más pequeño sale primero.',
   title: 'Escríbelo corto y claro; es lo primero que se ve.',
   name: 'Tal como quieres que se vea en el sitio.',
-  category: 'Ej.: Ropa, Calzado, Belleza. Sirve para buscar por categoría.',
+  category: 'Elige una de la lista. Sirve para filtrar el directorio.',
   status: 'Define cómo se muestra en el sitio.',
   top_rank: 'Del 1 al 9 para el Top 9 del mes. Déjalo vacío si no entra.',
   top_note: 'Frase corta que se ve en la tarjeta del Top 9. Ej.: "Más pedidos del mes".',

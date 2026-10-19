@@ -1,4 +1,5 @@
 import 'server-only';
+import { normalizeCategory } from './categories';
 import { writeAudit, type Actor } from './audit';
 import { withTransaction } from './db';
 import { ValidationError } from './errors';
@@ -144,6 +145,7 @@ interface MerchantInput {
   status: string;
   facebook_url: string;
   zone: string;
+  reassigned?: boolean;
 }
 
 /** Acepta "facebook.com/…" sin https y lo completa; solo se permiten enlaces https. */
@@ -171,6 +173,7 @@ export function parseMerchants(raw: string): MerchantInput[] {
     if (i === 0 && /^(nombre|comerciante|vendedor)/.test(strip(nameRaw)) && /categ/.test(strip(catRaw))) return; // encabezado
     const name = cleanLine(nameRaw, 100);
     if (!name) return void errors.push(`Línea ${lineNo}: falta el nombre.`);
+    const cat = normalizeCategory(cleanLine(catRaw, 80));
     const status = statusRaw ? STATUS_ALIASES[strip(statusRaw)] : 'activo';
     if (!status) return void errors.push(`Línea ${lineNo}: estatus "${cleanLine(statusRaw, 30)}" no válido (activo, pendiente de renovación, baja o riesgo).`);
     const facebook_url = cleanProfileUrl(fbRaw);
@@ -178,7 +181,8 @@ export function parseMerchants(raw: string): MerchantInput[] {
     // Si el nombre se repite en la lista, gana la última fila.
     byName.set(name.toLowerCase(), {
       name,
-      category: cleanLine(catRaw, 50) || 'Variado',
+      category: cat.value,
+      reassigned: cat.reassigned,
       status,
       facebook_url,
       zone: cleanLine(zoneRaw, 60),
@@ -190,8 +194,9 @@ export function parseMerchants(raw: string): MerchantInput[] {
 }
 
 /** Importación en bloque (pocas consultas aunque sean miles de filas): inserta nuevos y actualiza existentes por nombre. */
-export async function importMerchants(raw: string, actor: Actor, ctx: RequestContext): Promise<{ created: number; updated: number }> {
+export async function importMerchants(raw: string, actor: Actor, ctx: RequestContext): Promise<{ created: number; updated: number; reassigned: number }> {
   const rows = parseMerchants(raw);
+  const reassigned = rows.filter((m) => m.reassigned).length;
   const result = await withTransaction(async (client) => {
     const names = rows.map((m) => m.name.toLowerCase());
     const existing = await client.query<{ id: number; lname: string }>(
@@ -244,6 +249,6 @@ export async function importMerchants(raw: string, actor: Actor, ctx: RequestCon
     });
     return { created, updated };
   });
-  logger.info('merchants.imported', { ...result, actor: actor.id });
-  return result;
+  logger.info('merchants.imported', { ...result, reassigned, actor: actor.id });
+  return { ...result, reassigned };
 }

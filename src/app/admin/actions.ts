@@ -251,7 +251,7 @@ export async function importMerchantsAction(_prev: ActionState, formData: FormDa
     const ctx = await getRequestContext();
     const r = await importMerchants(String(formData.get('data') ?? ''), actorOf(user), ctx);
     refreshPublicSite();
-    return { ok: true, message: `Listo: ${r.created} comerciante(s) nuevo(s) y ${r.updated} actualizado(s).` };
+    return { ok: true, message: `Listo: ${r.created} comerciante(s) nuevo(s) y ${r.updated} actualizado(s).${r.reassigned ? ` ${r.reassigned} tenían una categoría fuera de la lista y quedaron como "Variado".` : ''}` };
   } catch (err) {
     unstable_rethrow(err);
     return toActionState(err, 'merchants.import');

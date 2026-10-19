@@ -1,5 +1,6 @@
 // Definición declarativa de los módulos de contenido editables desde el panel.
 // Todo nombre de tabla/columna usado en SQL sale de esta lista blanca (nunca del usuario).
+import { MERCHANT_CATEGORIES } from './categories';
 import { isSafeHref } from './security';
 
 export type FieldType = 'text' | 'textarea' | 'number' | 'decimal' | 'checkbox' | 'date' | 'time' | 'select' | 'url' | 'image';
@@ -349,7 +350,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
     ],
     fields: [
       { name: 'name', label: 'Nombre del comerciante o su nombre de Facebook', type: 'text', required: true, max: 100, wide: true, help: 'Solo el nombre del negocio o el nombre de su perfil de Facebook. No uses nombres personales.' },
-      { name: 'category', label: 'Categoría', type: 'text', required: true, max: 50, default: 'Variado', placeholder: 'Ropa, Calzado, Belleza…', help: 'Usa "Variado" cuando no encaje en una categoría principal. Escríbelas siempre igual para que el filtro las agrupe.' },
+      { name: 'category', label: 'Categoría', type: 'select', required: true, default: 'Variado', options: MERCHANT_CATEGORIES.map((c) => ({ value: c, label: c })), help: 'Elige una de la lista. Usa "Variado" si no encaja en ninguna.' },
       {
         name: 'status',
         label: 'Estatus',

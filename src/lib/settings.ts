@@ -105,7 +105,7 @@ export const SETTING_DEFS: SettingDef[] = [
   { key: 'location_badge', label: 'Etiqueta de ubicación (portada)', group: 'Contacto', type: 'text', max: 80, help: 'Frase corta que se ve arriba del título de la portada.', default: 'Tijuana y Ensenada, B.C.' },
   { key: 'tijuana_address', label: 'Sede Tijuana · dirección', group: 'Contacto', type: 'text', max: 160, default: 'Blvd. Gustavo Díaz Ordaz 14610, Col. Gas y Anexas, 22115 Tijuana, B.C.' },
   { key: 'tijuana_map_url', label: 'Sede Tijuana · enlace de Google Maps', group: 'Contacto', type: 'url', max: 300, help: 'Debe empezar con https://', default: 'https://www.google.com/maps/search/?api=1&query=Blvd.+Gustavo+D%C3%ADaz+Ordaz+14610+Col.+Gas+y+Anexas+22115+Tijuana+B.C.' },
-  { key: 'ensenada_address', label: 'Sede Ensenada · dirección', group: 'Contacto', type: 'text', max: 160, help: 'Agrega calle y número cuando los tengas.', default: 'Col. Bustamante, Ensenada, B.C.' },
+  { key: 'ensenada_address', label: 'Sede Ensenada · dirección', group: 'Contacto', type: 'text', max: 160, help: 'Calle, colonia y ciudad.', default: 'Zaragoza 739, Col. Bustamante, Ensenada, B.C.' },
   { key: 'ensenada_map_url', label: 'Sede Ensenada · enlace de Google Maps', group: 'Contacto', type: 'url', max: 300, help: 'Debe empezar con https://', default: 'https://www.google.com/maps/search/Envios+Ayora/@31.8686258,-116.5987051,17z' },
   { key: 'timezone', label: 'Zona horaria', group: 'Contacto', type: 'timezone', max: 60, help: 'Se usa para el reloj y el calendario. Ejemplo: America/Tijuana', default: 'America/Tijuana' },
   // ── Recolección

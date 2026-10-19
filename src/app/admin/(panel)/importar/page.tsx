@@ -48,12 +48,12 @@ bajapack ; Baja Pack Express ; Baja California ; 0 ; 5 ; 120`}</pre>
           <p className="muted">Una fila por comerciante, con estas columnas en este orden (solo el nombre es obligatorio):</p>
           <pre>{`nombre ; categoría ; estatus ; enlace de Facebook ; zona`}</pre>
           <p className="muted">
-            <strong>Nombre:</strong> el del negocio o su nombre de Facebook. <strong>Categoría:</strong> si la dejas vacía se marca &quot;Variado&quot;.{' '}
+            <strong>Nombre:</strong> el del negocio o su nombre de Facebook. <strong>Categoría:</strong> una de la lista oficial (Saldos Target, Saldos Amazon, Saldos en General, Ropa de Dama, Ropa Caballero, Ropa Niños, Ropa para Toda la Familia, Decoración y Hogar, Juguetes, Artículos de Mascota, Calzado y Accesorios, Artículos de Marca, Snacks y Alimentos, Personal Shopper en Tiendas de Marca o Variado). Se reconocen sin importar acentos o mayúsculas; si está vacía o no coincide, queda como &quot;Variado&quot;.{' '}
             <strong>Estatus:</strong> activo, pendiente de renovación, baja o riesgo (vacío = activo). <strong>Enlace:</strong> su perfil de Facebook, que debe empezar con https://.
             Si un nombre ya existe, se actualiza en lugar de duplicarse. Puedes pegar cientos de filas de una vez.
           </p>
-          <pre>{`Alaska León ; Saldos ; activo ; https://www.facebook.com/ejemplo ; Tijuana
-Tienda Mary ; Belleza ; pendiente de renovación ; https://www.facebook.com/ejemplo2 ; Ensenada`}</pre>
+          <pre>{`Alaska León ; Saldos Target ; activo ; https://www.facebook.com/ejemplo ; Tijuana
+Tienda Mary ; Ropa de Dama ; pendiente de renovación ; https://www.facebook.com/ejemplo2 ; Ensenada`}</pre>
           <p className="muted">No se publican teléfonos ni datos personales: solo el nombre, la categoría, el estatus y el enlace a su perfil público.</p>
         </div>
         <ImportForm kind="merchants" />
