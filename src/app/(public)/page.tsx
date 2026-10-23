@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CarrierChips, ServiceLogo, TopNine } from '@/components/HomeBits';
 import { Icon, type IconName } from '@/components/Icon';
+import { LazyVideo } from '@/components/LazyVideo';
 import { LeadForm } from '@/components/LeadForm';
 import { LxHero } from '@/components/LxHero';
 import { LxTopBar } from '@/components/LxTopBar';
@@ -171,9 +172,7 @@ export default async function HomePage() {
 
       {/* ── 01 · Portada ──────────────────────────────────── */}
       <section id="inicio" data-lx-section className="lx-hero" aria-label="Portada">
-        <video className="lx-hero__video" autoPlay loop muted playsInline preload="auto" aria-hidden="true" tabIndex={-1}>
-          <source src={HERO_VIDEO} type="video/mp4" />
-        </video>
+        <LazyVideo className="lx-hero__video" src={HERO_VIDEO} />
         <div className="lx-hero__shade" aria-hidden="true" />
         <LxTopBar settings={s} />
         <div className="lx-hero__center">
@@ -208,9 +207,7 @@ export default async function HomePage() {
               <p>Elige cómo viaja tu mercancía. La paquetería se asigna según disponibilidad del destino.</p>
             </Motion>
             <Motion kind="blur" delay={200} className="lx-square">
-              <video autoPlay loop muted playsInline preload="metadata" aria-hidden="true" tabIndex={-1}>
-                <source src={SERVICES_VIDEO} type="video/mp4" />
-              </video>
+              <LazyVideo src={SERVICES_VIDEO} lazy />
             </Motion>
           </div>
           <div className="lx-services__col lx-services__col--l">{leftServices.map((sv, i) => serviceCard(sv, i))}</div>

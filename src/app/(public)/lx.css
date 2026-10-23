@@ -2747,3 +2747,7 @@ div.lx-top9__link { cursor: default; }
 .lx-owner__frame--full { aspect-ratio: auto; display: block; }
 .lx-owner__frame--full img { display: block; width: auto; max-width: 100%; height: auto; max-height: 640px; object-fit: contain; margin: 0 auto; }
 @media (max-width: 899px) { .lx-owner__frame--full img { width: 100%; max-height: none; } }
+
+/* Animaciones de entrada: la capa de la GPU solo se reserva mientras el elemento aún no aparece */
+html.js .lx-blur:not(.is-in) { will-change: opacity, filter; }
+html.js .lx-rise:not(.is-in) { will-change: opacity, transform; }

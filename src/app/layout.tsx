@@ -7,7 +7,7 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import './globals.css';
-import { loadSettings } from '@/lib/site-settings';
+import { loadSettingsShared } from '@/lib/site-settings';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'http://localhost:3000';
 
@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const s = await loadSettings();
+  const s = await loadSettingsShared();
   const title = `${s.brand_name} · ${s.brand_tagline}`;
   const description = `${s.brand_name}: recolección y envíos a todo México por vía aérea, terrestre y paquetería nacional. Calendario de recolecciones, estado de servicios y atención por WhatsApp.`;
   return {

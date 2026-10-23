@@ -1,9 +1,10 @@
+import { cache } from 'react';
 import 'server-only';
 import { isDbConfigured, query } from './db';
 import { logger } from './logger';
 import { todayISO } from './format';
 import { safeTimezone, type SettingsMap } from './settings';
-import { loadSettings } from './site-settings';
+import { loadSettingsShared } from './site-settings';
 import seed from '../../db/seed-data.json';
 
 export interface Slide {
@@ -137,8 +138,8 @@ type ServiceRow = Omit<Service, 'slug' | 'carriers' | 'coverage'> & Partial<Pick
  * Contenido público del sitio. Si la base de datos no está configurada o falla, devuelve el
  * contenido de respaldo: el sitio nunca se cae por un problema de base de datos.
  */
-export async function getSiteContent(): Promise<SiteContent> {
-  const settings = await loadSettings();
+async function loadSiteContent(): Promise<SiteContent> {
+  const settings = await loadSettingsShared();
   const tz = safeTimezone(settings.timezone);
   const today = todayISO(tz);
 
@@ -180,3 +181,9 @@ export async function getSiteContent(): Promise<SiteContent> {
     return fallbackContent(settings, today);
   }
 }
+
+/**
+ * Igual que antes, pero el layout y la página comparten el resultado dentro de una misma visita
+ * (una sola tanda de consultas a la base de datos en lugar de dos).
+ */
+export const getSiteContent = cache(loadSiteContent);

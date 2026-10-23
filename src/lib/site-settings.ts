@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { writeAudit, type Actor } from './audit';
 import { isDbConfigured, query, withTransaction } from './db';
 import { ValidationError } from './errors';
@@ -20,6 +21,9 @@ export async function loadSettings(): Promise<SettingsMap> {
   }
   return settings;
 }
+
+/** Igual que loadSettings, pero comparte el resultado dentro de una misma visita (una sola consulta para el layout, los metadatos y la página). */
+export const loadSettingsShared = cache(loadSettings);
 
 function parseSettings(formData: FormData): SettingsMap {
   const errors: Record<string, string> = {};

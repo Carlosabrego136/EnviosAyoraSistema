@@ -69,28 +69,24 @@ export function LxChrome({
       setActiveId('');
       return;
     }
-    let raf = 0;
-    const compute = () => {
-      raf = 0;
-      const line = window.innerHeight * 0.5;
-      let idx = 0;
-      nodes.forEach((n, i) => {
-        if (n.getBoundingClientRect().top <= line) idx = i;
-      });
-      setCurrent(idx);
-      setActiveId(nodes[idx]?.id ?? '');
+    // La sección "actual" es la que cruza la línea del 50 % de la pantalla. Con IntersectionObserver no se mide el
+    // diseño en cada cuadro del desplazamiento (antes se leía la posición de todas las secciones en cada scroll).
+    const select = (i: number) => {
+      setCurrent(i);
+      setActiveId(nodes[i]?.id ?? '');
     };
-    const onScroll = () => {
-      if (!raf) raf = window.requestAnimationFrame(compute);
-    };
-    compute();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    select(0);
+    if (typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) select(nodes.indexOf(e.target as HTMLElement));
+        }
+      },
+      { rootMargin: '-50% 0px -50% 0px', threshold: 0 },
+    );
+    nodes.forEach((n) => io.observe(n));
+    return () => io.disconnect();
   }, [pathname]);
 
   useEffect(() => {
