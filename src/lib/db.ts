@@ -56,13 +56,14 @@ function createPool(): Pool {
   // Solo para PostgreSQL local de desarrollo. En producción SIEMPRE se usa SSL.
   const sslOff = process.env.DATABASE_SSL === 'off' && process.env.NODE_ENV !== 'production';
 
-  const max = Math.min(Math.max(Number(process.env.DATABASE_POOL_MAX) || 3, 1), 10);
+  // El servidor de Aiven se comparte con otros proyectos y solo admite 20 conexiones en total:
+  // cada instancia usa una sola conexión y la libera pronto.
   const pool = new Pool({
     connectionString: url.toString(),
     ssl: sslOff ? false : ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: false },
-    max,
-    idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 8_000,
+    max: 1,
+    idleTimeoutMillis: 2_000,
+    connectionTimeoutMillis: 12_000,
     statement_timeout: 15_000,
     query_timeout: 20_000,
     allowExitOnIdle: true,
@@ -76,18 +77,28 @@ export function getPool(): Pool {
   return globalThis.__fenixPool;
 }
 
+const RETRY_DELAYS_MS = [300, 700, 1300];
+
 /** Ejecuta una consulta parametrizada. Los errores de pg se registran y se traducen a DatabaseError. */
 export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params: unknown[] = [],
 ): Promise<T[]> {
-  try {
-    const result = await getPool().query<T>(text, params);
-    return result.rows;
-  } catch (err) {
-    if (err instanceof ConfigError) throw err;
-    logger.error('db.query_failed', err, { sql: text.slice(0, 120) });
-    throw new DatabaseError(err);
+  // Si el servidor está sin conexiones libres (53300) se reintenta hasta 3 veces; cualquier otro error se lanza igual que antes.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const result = await getPool().query<T>(text, params);
+      return result.rows;
+    } catch (err) {
+      if (err instanceof ConfigError) throw err;
+      const code = (err as { code?: unknown } | null)?.code;
+      if (code === '53300' && attempt < RETRY_DELAYS_MS.length) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt] + Math.floor(Math.random() * 201)));
+        continue;
+      }
+      logger.error('db.query_failed', err, { sql: text.slice(0, 120) });
+      throw new DatabaseError(err);
+    }
   }
 }
 
