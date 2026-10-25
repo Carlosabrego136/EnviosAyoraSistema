@@ -2,12 +2,22 @@
 
 import { useMemo, useState } from 'react';
 import { STATUS_META, STATUS_ORDER, type MerchantStatus, type PublicMerchant } from '@/lib/merchant-status';
+import { MERCHANT_CATEGORIES } from '@/lib/categories';
 import { Icon } from './Icon';
 
 const PAGE = 24;
 
 /** Solo se abren enlaces https:// */
 const profileUrl = (u: string): string | null => (/^https:\/\/[^\s]+$/i.test(u) ? u : null);
+
+/** Tono propio por categoría (para el avatar y la etiqueta). */
+const hueOf = (cat: string) => {
+  const i = (MERCHANT_CATEGORIES as readonly string[]).indexOf(cat);
+  return ((i < 0 ? 7 : i) * 47 + 215) % 360;
+};
+
+/** Sin enlace directo, el botón busca el perfil por su nombre en Facebook. */
+const fbSearch = (name: string) => `https://www.facebook.com/search/top?q=${encodeURIComponent(name)}`;
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -20,7 +30,7 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function MerchantAvatar({ m, size = 'md' }: { m: Pick<PublicMerchant, 'name' | 'photo_id'>; size?: 'md' | 'lg' }) {
+export function MerchantAvatar({ m, size = 'md', hue }: { m: Pick<PublicMerchant, 'name' | 'photo_id'>; size?: 'md' | 'lg'; hue?: number }) {
   if (m.photo_id) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
@@ -33,7 +43,8 @@ export function MerchantAvatar({ m, size = 'md' }: { m: Pick<PublicMerchant, 'na
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('');
-  return <span className={`lx-avatar lx-avatar--${size} lx-avatar--txt`} aria-hidden="true">{initials || '•'}</span>;
+  const tint = hue === undefined ? undefined : ({ '--h': hue } as React.CSSProperties);
+  return <span className={`lx-avatar lx-avatar--${size} lx-avatar--txt${tint ? ' lx-avatar--tint' : ''}`} style={tint} aria-hidden="true">{initials || '•'}</span>;
 }
 
 /** Directorio con búsqueda por nombre/categoría/zona, filtros por categoría y estatus. */
@@ -46,7 +57,7 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
     for (const m of merchants) counts.set(m.category, (counts.get(m.category) ?? 0) + 1);
-    return Array.from(counts.entries()).sort((a, b) => a[0].localeCompare(b[0], 'es'));
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'es'));
   }, [merchants]);
 
   const statusCounts = useMemo(() => {
@@ -72,11 +83,12 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
       <div className="lx-dir__stats" aria-label="Resumen del directorio">
         <div><strong>{merchants.length}</strong><span>comerciantes</span></div>
         <div><strong>{statusCounts.activo ?? 0}</strong><span>activos</span></div>
-        <div><strong>{statusCounts.renovacion ?? 0}</strong><span>pendientes de renovación</span></div>
-        <div><strong>{statusCounts.riesgo ?? 0}</strong><span>en riesgo</span></div>
+        <div><strong>{categories.length}</strong><span>categorías</span></div>
+        {(statusCounts.renovacion ?? 0) > 0 && <div><strong>{statusCounts.renovacion}</strong><span>pendientes de renovación</span></div>}
+        {(statusCounts.riesgo ?? 0) > 0 && <div><strong>{statusCounts.riesgo}</strong><span>en riesgo</span></div>}
       </div>
 
-      <div className="lx-dir__bar">
+      <div className="lx-dir__bar lx-dir__bar--one">
         <div className="lx-dir__search">
           <Icon name="search" size={18} />
           <input
@@ -88,18 +100,28 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
             maxLength={80}
           />
         </div>
-        <select
-          value={category}
-          onChange={(e) => { setCategory(e.target.value); setShown(PAGE); }}
-          aria-label="Filtrar por categoría"
-        >
-          <option value="">Todas las categorías</option>
-          {categories.map(([c, n]) => (
-            <option key={c} value={c}>{c} ({n})</option>
-          ))}
-        </select>
       </div>
 
+      {categories.length > 1 && (
+        <div className="lx-dir__cats" role="group" aria-label="Filtrar por categoría">
+          <button type="button" className={category === '' ? 'is-active' : undefined} onClick={() => { setCategory(''); setShown(PAGE); }}>
+            Todas <small>{merchants.length}</small>
+          </button>
+          {categories.map(([c, n]) => (
+            <button
+              key={c}
+              type="button"
+              className={category === c ? 'is-active' : undefined}
+              style={{ '--h': hueOf(c) } as React.CSSProperties}
+              onClick={() => { setCategory(category === c ? '' : c); setShown(PAGE); }}
+            >
+              <i aria-hidden="true" /> {c} <small>{n}</small>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {Object.keys(statusCounts).length > 1 && (
       <div className="lx-dir__chips" role="group" aria-label="Filtrar por estatus">
         <button type="button" className={status === '' ? 'is-active' : undefined} onClick={() => { setStatus(''); setShown(PAGE); }}>
           Todos
@@ -111,6 +133,7 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
           </button>
         ))}
       </div>
+      )}
 
       <p className="lx-dir__count" aria-live="polite">
         {filtered.length === 0
@@ -134,20 +157,23 @@ export function MerchantDirectory({ merchants, initialQuery = '' }: { merchants:
           {visible.map((m) => (
             <li key={m.id} className={`lx-mcard lx-mcard--${STATUS_META[m.status]?.tone ?? 'off'}`}>
               <div className="lx-mcard__top">
-                <MerchantAvatar m={m} />
+                <MerchantAvatar m={m} hue={hueOf(m.category)} />
                 <div className="lx-mcard__id">
                   <h3>{m.name}</h3>
-                  <span>{m.category}{m.zone ? ` · ${m.zone}` : ''}</span>
+                  <span className="lx-mcard__cat" style={{ '--h': hueOf(m.category) } as React.CSSProperties}>
+                    {m.category}{m.zone ? ` · ${m.zone}` : ''}
+                  </span>
                 </div>
               </div>
               <StatusBadge status={m.status} />
-              {profileUrl(m.facebook_url) ? (
-                <a className="lx-mcard__btn" href={profileUrl(m.facebook_url) as string} target="_blank" rel="noopener noreferrer">
-                  Visitar perfil <Icon name="arrow" size={14} />
-                </a>
-              ) : (
-                <span className="lx-mcard__btn lx-mcard__btn--off">Sin perfil público</span>
-              )}
+              <a
+                className="lx-mcard__btn"
+                href={profileUrl(m.facebook_url) ?? fbSearch(m.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {profileUrl(m.facebook_url) ? 'Visitar perfil' : 'Buscar en Facebook'} <Icon name="arrow" size={14} />
+              </a>
             </li>
           ))}
         </ul>

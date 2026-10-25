@@ -369,6 +369,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
       { name: 'photo_id', label: 'Foto o logo', type: 'image', wide: true, help: 'Opcional. JPG, PNG o WebP.' },
       { name: 'top_rank', label: 'Posición en el Top 9 del mes', type: 'number', min: 1, max: 9, help: 'Del 1 al 9. Déjalo vacío si no está en el Top 9. Cada posición solo puede tenerla un comerciante.' },
       { name: 'top_note', label: 'Nota en el Top 9', type: 'text', max: 80, placeholder: 'Ej. Más envíos del mes', wide: true },
+      { name: 'description', label: 'Notas internas (no se publican)', type: 'textarea', max: 300, wide: true, help: 'Solo las ves tú en el admin: nombre completo, número de registro u otros datos. No aparecen en el sitio.' },
       { name: 'is_public', label: 'Mostrar en el directorio público', type: 'checkbox', default: true },
     ],
     conflictField: { name: 'top_rank', message: 'Esa posición del Top 9 ya la tiene otro comerciante. Quítasela primero o elige otra.' },
