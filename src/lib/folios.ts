@@ -15,11 +15,16 @@ const LOCK_TIMEOUT = '4s';
 export const LIST_LIMIT = 300;
 export const EXPORT_LIMIT = 20000;
 
+const FOLIO_COLS = `id, folio_number, request_id, branch, branch_id, sender_name, sender_phone, recipient_name, weight_kg::text, size_id,
+  size_name, price::text, collector, paid, paid_at, carrier_guide, notes, status, cancel_reason,
+  cancelled_at, cancelled_by, created_by, created_by_name, created_at, updated_at`;
+
 export interface Folio {
   id: number;
   folio_number: number;
   request_id: string;
   branch: string;
+  branch_id: number | null;
   sender_name: string;
   sender_phone: string;
   recipient_name: string;
@@ -40,6 +45,13 @@ export interface Folio {
   created_by_name: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface FolioBranch {
+  id: number;
+  name: string;
+  sort_order: number;
+  is_active: boolean;
 }
 
 export interface FolioSize {
@@ -87,12 +99,21 @@ const weightField = z.unknown().transform((v, ctx) => {
   return Math.round(n * 100) / 100;
 });
 
+const branchField = z.unknown().transform((v, ctx) => {
+  const n = Number(typeof v === 'string' ? v.trim() : v);
+  if (!Number.isSafeInteger(n) || n <= 0) {
+    ctx.addIssue({ code: 'custom', message: 'Selecciona la sucursal de entrega.' });
+    return z.NEVER;
+  }
+  return n;
+});
+
 const baseFields = {
   sender_name: line('El nombre del remitente', 100, true),
   sender_phone: phoneField,
-  recipient_name: line('El destinatario', 100, false),
+  recipient_name: line('El nombre de quien recibe', 100, true),
   collector: line('El recolector', 60, true),
-  carrier_guide: line('La guía', 60, false),
+  branch_id: branchField,
   notes: z.unknown().transform((v) => cleanMultiline(v, 300)),
   weight_kg: weightField,
 };
@@ -135,12 +156,16 @@ export async function listSizes(onlyActive = false): Promise<FolioSize[]> {
   );
 }
 
+export async function listBranches(onlyActive = false): Promise<FolioBranch[]> {
+  return query<FolioBranch>(
+    `SELECT id, name, sort_order, is_active FROM folio_branches ${onlyActive ? 'WHERE is_active' : ''} ORDER BY sort_order, id`,
+  );
+}
+
 export async function getFolio(id: number): Promise<Folio | null> {
   if (!Number.isSafeInteger(id) || id <= 0) return null;
   const rows = await query<Folio>(
-    `SELECT id, folio_number, request_id, branch, sender_name, sender_phone, recipient_name, weight_kg::text, size_id,
-            size_name, price::text, collector, paid, paid_at, carrier_guide, notes, status, cancel_reason,
-            cancelled_at, cancelled_by, created_by, created_by_name, created_at, updated_at
+    `SELECT ${FOLIO_COLS}
        FROM folios WHERE id = $1`,
     [id],
   );
@@ -152,6 +177,7 @@ export interface FolioFilters {
   from?: string; // YYYY-MM-DD (zona horaria del negocio)
   to?: string;
   collector?: string;
+  branch_id?: number;
   status?: 'activo' | 'cancelado' | '';
   paid?: 'si' | 'no' | '';
   /** Solo los de hoy (vista del recolector). */
@@ -183,6 +209,7 @@ function buildWhere(f: FolioFilters, tz: string): { where: string; params: unkno
   if (f.to && DATE_RE.test(f.to)) conds.push(`(created_at AT TIME ZONE ${tzp})::date <= ${add(f.to)}::date`);
   const collector = cleanLine(f.collector, 60);
   if (collector) conds.push(`lower(collector) = lower(${add(collector)})`);
+  if (f.branch_id && Number.isSafeInteger(f.branch_id)) conds.push(`branch_id = ${add(f.branch_id)}`);
   if (f.status === 'activo' || f.status === 'cancelado') conds.push(`status = ${add(f.status)}`);
   if (f.paid === 'si') conds.push('paid');
   if (f.paid === 'no') conds.push('NOT paid');
@@ -193,9 +220,7 @@ export async function listFolios(f: FolioFilters, tz: string, limit = LIST_LIMIT
   const { where, params } = buildWhere(f, tz);
   const max = Math.min(Math.max(1, Math.trunc(limit) || LIST_LIMIT), EXPORT_LIMIT);
   return query<Folio>(
-    `SELECT id, folio_number, request_id, branch, sender_name, sender_phone, recipient_name, weight_kg::text, size_id,
-            size_name, price::text, collector, paid, paid_at, carrier_guide, notes, status, cancel_reason,
-            cancelled_at, cancelled_by, created_by, created_by_name, created_at, updated_at
+    `SELECT ${FOLIO_COLS}
        FROM folios ${where} ORDER BY folio_number DESC LIMIT ${max}`,
     params,
   );
@@ -226,6 +251,46 @@ export async function summarize(f: FolioFilters, tz: string): Promise<FolioSumma
     params,
   );
   return rows[0];
+}
+
+export interface CorteRow {
+  collector: string;
+  active: number;
+  paid_amount: string;
+  pending_amount: string;
+  cancelled: number;
+}
+
+export interface Corte {
+  date: string;
+  summary: FolioSummary;
+  byCollector: CorteRow[];
+  bySize: { size_name: string; active: number; amount: string }[];
+}
+
+/** Corte de un día (zona horaria del negocio): lo cobrado, lo pendiente y lo cancelado. Solo cuenta folios activos para dinero. */
+export async function corteDelDia(date: string, tz: string): Promise<Corte> {
+  if (!DATE_RE.test(date)) throw new ValidationError({ fecha: 'Fecha inválida.' });
+  const filters: FolioFilters = { from: date, to: date };
+  const { where, params } = buildWhere(filters, tz);
+  const [summary, byCollector, bySize] = await Promise.all([
+    summarize(filters, tz),
+    query<CorteRow>(
+      `SELECT collector,
+              count(*) FILTER (WHERE status = 'activo')::int AS active,
+              coalesce(sum(price) FILTER (WHERE status = 'activo' AND paid), 0)::text AS paid_amount,
+              coalesce(sum(price) FILTER (WHERE status = 'activo' AND NOT paid), 0)::text AS pending_amount,
+              count(*) FILTER (WHERE status = 'cancelado')::int AS cancelled
+         FROM folios ${where} GROUP BY collector ORDER BY lower(collector)`,
+      params,
+    ),
+    query<{ size_name: string; active: number; amount: string }>(
+      `SELECT size_name, count(*)::int AS active, coalesce(sum(price), 0)::text AS amount
+         FROM folios ${where ? `${where} AND` : 'WHERE'} status = 'activo' GROUP BY size_name ORDER BY min(price), size_name`,
+      params,
+    ),
+  ]);
+  return { date, summary, byCollector, bySize };
 }
 
 export async function recentCollectors(): Promise<string[]> {
@@ -281,14 +346,8 @@ export interface CreateResult {
   duplicate: boolean;
 }
 
-export async function createFolio(
-  input: unknown,
-  branch: string,
-  actor: Actor,
-  ctx: RequestContext,
-): Promise<CreateResult> {
+export async function createFolio(input: unknown, actor: Actor, ctx: RequestContext): Promise<CreateResult> {
   const data = parseOrThrow(createFolioSchema, input);
-  const branchName = cleanLine(branch, 80) || 'Fénix Tijuana Matriz';
 
   // Idempotencia: si ya existe un folio con esta solicitud, se devuelve el mismo.
   const existing = await findByRequestId(data.request_id);
@@ -311,6 +370,11 @@ export async function createFolio(
           throw new AppError('FOLIO_LIMIT', 'Se alcanzó el folio 99999. Avisa al administrador para reiniciar la numeración.', 409);
         }
         const number = counter[0].last_number;
+        const { rows: br } = await client.query<{ id: number; name: string }>(
+          'SELECT id, name FROM folio_branches WHERE id = $1 AND is_active',
+          [data.branch_id],
+        );
+        if (br.length === 0) throw new ValidationError({ branch_id: 'Esa sucursal ya no está disponible. Elige otra.' });
         // Precio del tamaño al momento de crear (se guarda una copia; cambios futuros no lo alteran).
         const { rows: fresh } = await client.query<{ name: string; price: string }>(
           'SELECT name, price::text FROM folio_sizes WHERE id = $1 AND is_active',
@@ -319,14 +383,14 @@ export async function createFolio(
         if (fresh.length === 0) throw new ValidationError({ weight_kg: 'El tamaño cambió mientras se guardaba. Inténtalo de nuevo.' });
         const { rows } = await client.query<{ id: number }>(
           `INSERT INTO folios
-             (folio_number, request_id, branch, sender_name, sender_phone, recipient_name, weight_kg, size_id, size_name,
-              price, collector, paid, paid_at, carrier_guide, notes, created_by, created_by_name)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $12 THEN now() END,$13,$14,$15,$16)
+             (folio_number, request_id, branch, branch_id, sender_name, sender_phone, recipient_name, weight_kg, size_id,
+              size_name, price, collector, paid, paid_at, notes, created_by, created_by_name)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, CASE WHEN $13 THEN now() END,$14,$15,$16)
            RETURNING id`,
           [
-            number, data.request_id, branchName, data.sender_name, data.sender_phone, data.recipient_name,
+            number, data.request_id, br[0].name, br[0].id, data.sender_name, data.sender_phone, data.recipient_name,
             data.weight_kg, size.id, fresh[0].name, fresh[0].price, data.collector, data.paid,
-            data.carrier_guide, data.notes, actor.id, actorLabel(actor),
+            data.notes, actor.id, actorLabel(actor),
           ],
         );
         await writeAudit(client, {
@@ -334,8 +398,8 @@ export async function createFolio(
           action: 'folios.create',
           entity: 'folios',
           entityId: rows[0].id,
-          summary: `Folio ${String(number).padStart(5, '0')} · ${fresh[0].name} · $${fresh[0].price} · ${data.collector}`,
-          after: { folio_number: number, size: fresh[0].name, price: fresh[0].price, paid: data.paid, collector: data.collector },
+          summary: `Folio ${String(number).padStart(5, '0')} · ${fresh[0].name} · $${fresh[0].price} · ${br[0].name} · ${data.collector}`,
+          after: { folio_number: number, branch: br[0].name, size: fresh[0].name, price: fresh[0].price, paid: data.paid, collector: data.collector },
           ctx,
         });
         return rows[0].id;
@@ -366,9 +430,7 @@ export async function createFolio(
 async function lockFolio(client: PoolClient, id: number): Promise<Folio> {
   await client.query(`SET LOCAL lock_timeout = '${LOCK_TIMEOUT}'`);
   const { rows } = await client.query<Folio>(
-    `SELECT id, folio_number, request_id, branch, sender_name, sender_phone, recipient_name, weight_kg::text, size_id,
-            size_name, price::text, collector, paid, paid_at, carrier_guide, notes, status, cancel_reason,
-            cancelled_at, cancelled_by, created_by, created_by_name, created_at, updated_at
+    `SELECT ${FOLIO_COLS}
        FROM folios WHERE id = $1 FOR UPDATE`,
     [id],
   );
@@ -395,16 +457,28 @@ export async function updateFolio(id: number, input: unknown, actor: Actor, ctx:
       price = size.price;
     }
     const paidAt = data.paid ? (before.paid ? before.paid_at : new Date()) : null;
+    // Sucursal: si no cambió se respeta tal cual (aunque ya esté desactivada); si cambió debe estar activa.
+    let branchId = before.branch_id;
+    let branchName = before.branch;
+    if (before.branch_id !== data.branch_id) {
+      const { rows: br } = await client.query<{ id: number; name: string }>(
+        'SELECT id, name FROM folio_branches WHERE id = $1 AND is_active',
+        [data.branch_id],
+      );
+      if (br.length === 0) throw new ValidationError({ branch_id: 'Esa sucursal no está disponible. Elige otra.' });
+      branchId = br[0].id;
+      branchName = br[0].name;
+    }
     await client.query(
       `UPDATE folios SET sender_name=$2, sender_phone=$3, recipient_name=$4, weight_kg=$5, size_id=$6, size_name=$7,
-              price=$8, collector=$9, paid=$10, paid_at=$11, carrier_guide=$12, notes=$13
+              price=$8, collector=$9, paid=$10, paid_at=$11, notes=$12, branch=$13, branch_id=$14
         WHERE id=$1`,
       [id, data.sender_name, data.sender_phone, data.recipient_name, data.weight_kg, sizeId, sizeName, price,
-        data.collector, data.paid, paidAt, data.carrier_guide, data.notes],
+        data.collector, data.paid, paidAt, data.notes, branchName, branchId],
     );
-    const pick = (f: Pick<Folio, 'sender_name' | 'recipient_name' | 'weight_kg' | 'size_name' | 'price' | 'collector' | 'paid' | 'carrier_guide'>) => ({
+    const pick = (f: Pick<Folio, 'sender_name' | 'recipient_name' | 'weight_kg' | 'size_name' | 'price' | 'collector' | 'paid' | 'branch'>) => ({
       sender_name: f.sender_name, recipient_name: f.recipient_name, weight_kg: f.weight_kg, size_name: f.size_name,
-      price: f.price, collector: f.collector, paid: f.paid, carrier_guide: f.carrier_guide,
+      price: f.price, collector: f.collector, paid: f.paid, branch: f.branch,
     });
     await writeAudit(client, {
       actor,
@@ -414,7 +488,7 @@ export async function updateFolio(id: number, input: unknown, actor: Actor, ctx:
       summary: `Corrección del folio ${String(before.folio_number).padStart(5, '0')}`,
       before: pick(before),
       after: pick({ ...before, sender_name: data.sender_name, recipient_name: data.recipient_name, weight_kg: String(data.weight_kg),
-        size_name: sizeName, price, collector: data.collector, paid: data.paid, carrier_guide: data.carrier_guide }),
+        size_name: sizeName, price, collector: data.collector, paid: data.paid, branch: branchName }),
       ctx,
     });
   });
@@ -497,13 +571,13 @@ function csvCell(v: unknown): string {
 
 export function foliosToCsv(rows: Folio[], tz: string): string {
   const fmt = new Intl.DateTimeFormat('es-MX', { timeZone: tz, dateStyle: 'short', timeStyle: 'short' });
-  const head = ['Folio', 'Fecha', 'Estado', 'Recolector', 'Remitente', 'Teléfono', 'Destinatario', 'Sucursal', 'Peso kg', 'Tamaño', 'Precio', 'Pago', 'Guía paquetería', 'Notas', 'Motivo cancelación'];
+  const head = ['Folio', 'Fecha', 'Estado', 'Recolector', 'Remitente', 'Teléfono', 'Quien recibe', 'Sucursal', 'Peso kg', 'Tamaño', 'Precio', 'Pago', 'Notas', 'Motivo cancelación'];
   const lines = [head.map(csvCell).join(',')];
   for (const r of rows) {
     lines.push([
       padFolio(r.folio_number), fmt.format(r.created_at), r.status, r.collector, r.sender_name, r.sender_phone,
       r.recipient_name, r.branch, r.weight_kg ?? '', r.size_name, r.price, r.paid ? 'Cobrado' : 'Por cobrar',
-      r.carrier_guide, r.notes, r.cancel_reason,
+      r.notes, r.cancel_reason,
     ].map(csvCell).join(','));
   }
   return `﻿${lines.join('\r\n')}\r\n`;

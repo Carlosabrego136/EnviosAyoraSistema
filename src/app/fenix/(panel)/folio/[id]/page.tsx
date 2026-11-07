@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { togglePaidAction } from '@/app/admin/folios/actions';
+import { togglePaidAction } from '@/app/fenix/actions';
 import { Flash } from '@/components/admin/Cell';
-import { CancelFolioForm, EditFolioForm, type SizeOption } from '@/components/admin/FolioForms';
+import { CancelFolioForm, EditFolioForm, type BranchOption, type SizeOption } from '@/components/admin/FolioForms';
 import { Icon } from '@/components/Icon';
 import { adminTimezone } from '@/lib/admin-utils';
-import { requirePageUser } from '@/lib/auth';
-import { getFolio, listSizes, moneyMx, padFolio, recentCollectors, whatsappLink } from '@/lib/folios';
+import { requireFenixPage } from '@/lib/auth';
+import { getFolio, listBranches, listSizes, moneyMx, padFolio, recentCollectors, whatsappLink } from '@/lib/folios';
 import { formatDateTime } from '@/lib/format';
 import { logger } from '@/lib/logger';
 import { loadSettings } from '@/lib/site-settings';
@@ -24,7 +24,7 @@ export default async function FolioDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ nuevo?: string; cancelado?: string; ok?: string; error?: string }>;
 }) {
-  await requirePageUser('folios.operate');
+  await requireFenixPage('folios.operate');
   const id = Number((await params).id);
   const sp = await searchParams;
   if (!Number.isSafeInteger(id) || id <= 0) notFound();
@@ -42,8 +42,11 @@ export default async function FolioDetailPage({
   }
   if (!folio) notFound();
 
-  const [tz, settings, sizeRows, collectors] = await Promise.all([adminTimezone(), loadSettings(), listSizes(true), recentCollectors()]);
+  const [tz, settings, sizeRows, collectors, branchRows] = await Promise.all([adminTimezone(), loadSettings(), listSizes(true), recentCollectors(), listBranches(true)]);
   const sizes: SizeOption[] = sizeRows.map((s) => ({ id: s.id, name: s.name, maxKg: Number(s.max_kg), price: Number(s.price) }));
+  // La sucursal actual siempre aparece en la lista, aunque ya se haya desactivado.
+  const branches: BranchOption[] = branchRows.map((b) => ({ id: b.id, name: b.name }));
+  if (folio.branch_id && !branches.some((b) => b.id === folio.branch_id)) branches.unshift({ id: folio.branch_id, name: folio.branch });
   const cancelled = folio.status === 'cancelado';
   const wa = cancelled ? null : whatsappLink(folio, settings.folio_wa_message);
 
@@ -55,7 +58,7 @@ export default async function FolioDetailPage({
           <p>Creado {formatDateTime(folio.created_at, tz)} por {folio.created_by_name || '—'}</p>
         </div>
         <div className="adm-head__actions">
-          <Link className="btn btn--ghost btn--sm" href="/admin/folios">← Volver a folios</Link>
+          <Link className="btn btn--ghost btn--sm" href="/fenix">← Volver a folios</Link>
         </div>
       </header>
 
@@ -69,19 +72,18 @@ export default async function FolioDetailPage({
 
       <section className="card fol-card">
         <dl className="fol-dl">
-          <div><dt>Destino</dt><dd>{folio.branch}</dd></div>
+          <div><dt>Sucursal de entrega</dt><dd>{folio.branch}</dd></div>
           <div><dt>Remitente</dt><dd>{folio.sender_name}{folio.sender_phone ? ` · ${folio.sender_phone}` : ''}</dd></div>
-          <div><dt>Destinatario</dt><dd>{folio.recipient_name || '—'}</dd></div>
+          <div><dt>Quien recibe</dt><dd>{folio.recipient_name || '—'}</dd></div>
           <div><dt>Tamaño</dt><dd>{folio.size_name}{folio.weight_kg ? ` · ${Number(folio.weight_kg)} kg` : ''}</dd></div>
           <div><dt>Precio</dt><dd>{moneyMx(folio.price)} · {cancelled ? 'sin cobro' : folio.paid ? `Cobrado${folio.paid_at ? ` el ${formatDateTime(folio.paid_at, tz)}` : ''}` : 'Por cobrar'}</dd></div>
           <div><dt>Recolector</dt><dd>{folio.collector}</dd></div>
-          <div><dt>Guía de paquetería</dt><dd>{folio.carrier_guide || '—'}</dd></div>
           {folio.notes && <div><dt>Notas</dt><dd>{folio.notes}</dd></div>}
           {cancelled && <div><dt>Cancelación</dt><dd>{folio.cancel_reason} · {folio.cancelled_by}{folio.cancelled_at ? ` · ${formatDateTime(folio.cancelled_at, tz)}` : ''}</dd></div>}
         </dl>
         {!cancelled && (
           <div className="fol-actions">
-            <a className="btn btn--solid" href={`/admin/etiqueta/${folio.id}?auto=1`} target="_blank" rel="noopener">
+            <a className="btn btn--solid" href={`/fenix/etiqueta/${folio.id}?auto=1`} target="_blank" rel="noopener">
               <Icon name="box" size={16} /> Imprimir etiqueta
             </a>
             {wa ? (
@@ -102,18 +104,19 @@ export default async function FolioDetailPage({
         <>
           <details className="card fol-card fol-details">
             <summary>Corregir datos del folio</summary>
-            <p className="field__hint">El número y la fecha del folio no se pueden cambiar. Si cambias el peso, el tamaño y el precio se recalculan.</p>
+            <p className="field__hint">El número y la fecha del folio no se pueden cambiar. Si cambias el peso, el tamaño y el precio se recalculan; la sucursal sí se puede corregir.</p>
             <EditFolioForm
               id={folio.id}
               sizes={sizes}
               collectors={collectors}
+              branches={branches}
               initial={{
                 sender_name: folio.sender_name,
                 sender_phone: folio.sender_phone,
                 recipient_name: folio.recipient_name,
                 weight_kg: folio.weight_kg ? String(Number(folio.weight_kg)) : '',
                 collector: folio.collector,
-                carrier_guide: folio.carrier_guide,
+                branch_id: folio.branch_id ? String(folio.branch_id) : '',
                 notes: folio.notes,
                 paid: folio.paid,
               }}

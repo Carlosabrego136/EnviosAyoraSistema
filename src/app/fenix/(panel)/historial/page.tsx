@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { FolioTable } from '@/components/admin/FolioList';
 import { Icon } from '@/components/Icon';
 import { adminTimezone } from '@/lib/admin-utils';
-import { requirePageUser } from '@/lib/auth';
+import { requireFenixPage } from '@/lib/auth';
 import { listFolios, moneyMx, recentCollectors, summarize, LIST_LIMIT, type Folio, type FolioFilters, type FolioSummary } from '@/lib/folios';
 import { todayISO } from '@/lib/format';
 import { logger } from '@/lib/logger';
@@ -14,7 +14,7 @@ type SP = { q?: string; from?: string; to?: string; collector?: string; status?:
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export default async function FolioHistoryPage({ searchParams }: { searchParams: Promise<SP> }) {
-  await requirePageUser('folios.manage');
+  await requireFenixPage('folios.manage');
   const sp = await searchParams;
   const tz = await adminTimezone();
   const today = todayISO(tz);
@@ -51,11 +51,11 @@ export default async function FolioHistoryPage({ searchParams }: { searchParams:
           <p>Consulta, filtra y exporta todos los folios. Los totales solo cuentan los folios activos.</p>
         </div>
         <div className="adm-head__actions">
-          <a className="btn btn--solid btn--sm" href={`/admin/folios/exportar?${exportQuery}`}>Descargar CSV (Excel)</a>
+          <a className="btn btn--solid btn--sm" href={`/fenix/exportar?${exportQuery}`}>Descargar CSV (Excel)</a>
         </div>
       </header>
 
-      <form className="card adm-filters" action="/admin/folios/historial">
+      <form className="card adm-filters" action="/fenix/historial">
         <div className="field"><label htmlFor="from">Desde</label><input id="from" name="from" type="date" defaultValue={filters.from} /></div>
         <div className="field"><label htmlFor="to">Hasta</label><input id="to" name="to" type="date" defaultValue={filters.to} /></div>
         <div className="field">
@@ -77,9 +77,9 @@ export default async function FolioHistoryPage({ searchParams }: { searchParams:
             <option value="">Todos</option><option value="si">Cobrados</option><option value="no">Por cobrar</option>
           </select>
         </div>
-        <div className="field"><label htmlFor="q">Buscar</label><input id="q" name="q" type="search" defaultValue={filters.q ?? ''} maxLength={80} placeholder="Folio, nombre o guía" /></div>
+        <div className="field"><label htmlFor="q">Buscar</label><input id="q" name="q" type="search" defaultValue={filters.q ?? ''} maxLength={80} placeholder="Folio o nombre" /></div>
         <button type="submit" className="btn btn--solid btn--sm">Filtrar</button>
-        <Link className="btn btn--ghost btn--sm" href="/admin/folios/historial">Hoy</Link>
+        <Link className="btn btn--ghost btn--sm" href="/fenix/historial">Hoy</Link>
       </form>
 
       {failed ? (

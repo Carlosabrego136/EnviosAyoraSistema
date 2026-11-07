@@ -36,6 +36,16 @@ const nextConfig = {
   serverExternalPackages: ['pg', 'bcryptjs'],
   // Las fotos del panel se reducen en el navegador; este límite cubre lo que llega al servidor (máx. ~4 MB por imagen).
   experimental: { serverActions: { bodySizeLimit: '4.5mb' } },
+  // Rutas antiguas del módulo de folios (ahora vive en /fenix).
+  async redirects() {
+    return [
+      { source: '/admin/folios', destination: '/fenix', permanent: false },
+      { source: '/admin/folios/historial', destination: '/fenix/historial', permanent: false },
+      { source: '/admin/folios/exportar', destination: '/fenix/exportar', permanent: false },
+      { source: '/admin/folios/:id(\\d+)', destination: '/fenix/folio/:id', permanent: false },
+      { source: '/admin/etiqueta/:id(\\d+)', destination: '/fenix/etiqueta/:id', permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

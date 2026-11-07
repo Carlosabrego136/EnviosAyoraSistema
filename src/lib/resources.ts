@@ -369,6 +369,30 @@ export const RESOURCES: Record<string, ResourceDef> = {
     },
   },
 
+  sucursales: {
+    key: 'sucursales',
+    table: 'folio_branches',
+    permission: 'folios',
+    singular: 'sucursal de entrega',
+    plural: 'Sucursales (folios)',
+    description:
+      'Sucursales a las que se puede enviar un paquete con folio. El recolector elige una al capturar. Si una sucursal deja de usarse, desactívala (no se borra) para que ya no aparezca; los folios anteriores conservan su sucursal.',
+    orderBy: 'sort_order, id',
+    canCreate: true,
+    canDelete: false,
+    titleOf: (r) => s(r.name),
+    columns: [
+      { name: 'name', label: 'Sucursal' },
+      { name: 'sort_order', label: 'Orden' },
+      { name: 'is_active', label: 'Activa', kind: 'bool' },
+    ],
+    fields: [
+      { name: 'name', label: 'Nombre de la sucursal', type: 'text', required: true, max: 80, placeholder: 'Fénix Tijuana Matriz' },
+      { name: 'sort_order', label: 'Orden en la lista', type: 'number', min: 0, max: 999, default: 0 },
+      { name: 'is_active', label: 'Activa', type: 'checkbox', default: true },
+    ],
+  },
+
   comerciantes: {
     key: 'comerciantes',
     table: 'merchants',

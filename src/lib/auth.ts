@@ -152,8 +152,19 @@ export async function requirePageUser(permission?: Permission): Promise<SessionU
   const user = await getCurrentUser();
   if (!user) redirect('/admin/login');
   // El recolector solo usa el módulo de folios: cualquier otra página lo regresa ahí.
-  if (!permission && user.role === 'recolector') redirect('/admin/folios');
-  if (permission && !can(user.role, permission)) redirect(user.role === 'recolector' ? '/admin/folios' : '/admin?aviso=sin-permiso');
+  if (!permission && user.role === 'recolector') redirect('/fenix');
+  if (permission && !can(user.role, permission)) redirect(user.role === 'recolector' ? '/fenix' : '/admin?aviso=sin-permiso');
+  return user;
+}
+
+/**
+ * Páginas de la sección Fénix Point (/fenix): misma sesión y mismos usuarios, pero su propio login.
+ * Sin sesión → /fenix/login. Sin el permiso: el recolector vuelve a /fenix; cualquier otro rol, al panel.
+ */
+export async function requireFenixPage(permission: Permission): Promise<SessionUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/fenix/login');
+  if (!can(user.role, permission)) redirect(user.role === 'recolector' ? '/fenix' : '/admin?aviso=sin-permiso');
   return user;
 }
 

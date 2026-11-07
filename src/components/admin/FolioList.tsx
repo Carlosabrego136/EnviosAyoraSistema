@@ -23,7 +23,7 @@ export function FolioTable({ rows, tz, showCollector = true }: { rows: Folio[]; 
           {rows.map((f) => (
             <tr key={f.id} className={f.status === 'cancelado' ? 'fol-row--cancelled' : undefined}>
               <td data-label="Folio">
-                <Link className="adm-table__link fol-num" href={`/admin/folios/${f.id}`}>{padFolio(f.folio_number)}</Link>
+                <Link className="adm-table__link fol-num" href={`/fenix/folio/${f.id}`}>{padFolio(f.folio_number)}</Link>
               </td>
               <td data-label="Fecha">{formatDateTime(f.created_at, tz)}</td>
               <td data-label="Remitente">{f.sender_name}</td>
@@ -33,7 +33,7 @@ export function FolioTable({ rows, tz, showCollector = true }: { rows: Folio[]; 
               {showCollector && <td data-label="Recolector">{f.collector}</td>}
               <td data-label="Estado">{f.status === 'cancelado' ? 'Cancelado' : 'Activo'}</td>
               <td className="adm-table__actions">
-                <Link className="btn btn--ghost btn--sm" href={`/admin/folios/${f.id}`}>Abrir</Link>
+                <Link className="btn btn--ghost btn--sm" href={`/fenix/folio/${f.id}`}>Abrir</Link>
               </td>
             </tr>
           ))}

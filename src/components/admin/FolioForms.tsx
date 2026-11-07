@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { cancelFolioAction, createFolioAction, updateFolioAction } from '@/app/admin/folios/actions';
+import { cancelFolioAction, createFolioAction, updateFolioAction } from '@/app/fenix/actions';
 import { Icon } from '@/components/Icon';
 import type { ActionState } from '@/lib/errors';
 
@@ -16,13 +16,18 @@ export interface SizeOption {
   price: number;
 }
 
+export interface BranchOption {
+  id: number;
+  name: string;
+}
+
 export interface FolioValues {
   sender_name: string;
   sender_phone: string;
   recipient_name: string;
   weight_kg: string;
   collector: string;
-  carrier_guide: string;
+  branch_id: string;
   notes: string;
   paid: boolean;
 }
@@ -82,11 +87,13 @@ function FolioFields({
   state,
   sizes,
   collectors,
+  branches,
   initial,
 }: {
   state: ActionState;
   sizes: SizeOption[];
   collectors: string[];
+  branches: BranchOption[];
   initial?: FolioValues;
 }) {
   const v = state.values ?? {};
@@ -138,14 +145,18 @@ function FolioFields({
         <Err state={state} name="sender_phone" />
       </div>
       <div className="field">
-        <label htmlFor="recipient_name">Destinatario</label>
-        <input id="recipient_name" name="recipient_name" type="text" defaultValue={val('recipient_name')} maxLength={100} autoComplete="off" placeholder="Opcional" />
+        <label htmlFor="recipient_name">Quien recibe el paquete *</label>
+        <input id="recipient_name" name="recipient_name" type="text" defaultValue={val('recipient_name')} maxLength={100} autoComplete="off" placeholder="Nombre de quien lo recoge" aria-invalid={Boolean(state.fieldErrors?.recipient_name)} />
         <Err state={state} name="recipient_name" />
       </div>
       <div className="field">
-        <label htmlFor="carrier_guide">Guía de la paquetería</label>
-        <input id="carrier_guide" name="carrier_guide" type="text" defaultValue={val('carrier_guide')} maxLength={60} autoComplete="off" placeholder="Opcional" />
-        <Err state={state} name="carrier_guide" />
+        <label htmlFor="branch_id">Sucursal de entrega *</label>
+        <select id="branch_id" name="branch_id" defaultValue={val('branch_id', branches[0] ? String(branches[0].id) : '')} aria-invalid={Boolean(state.fieldErrors?.branch_id)}>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>{b.name}</option>
+          ))}
+        </select>
+        <Err state={state} name="branch_id" />
       </div>
       <div className="field field--wide">
         <label htmlFor="notes">Notas</label>
@@ -160,7 +171,7 @@ function FolioFields({
   );
 }
 
-export function NewFolioForm({ requestId, sizes, collectors }: { requestId: string; sizes: SizeOption[]; collectors: string[] }) {
+export function NewFolioForm({ requestId, sizes, collectors, branches }: { requestId: string; sizes: SizeOption[]; collectors: string[]; branches: BranchOption[] }) {
   const [state, action] = useActionState(createFolioAction, INITIAL);
   return (
     <form
@@ -178,7 +189,7 @@ export function NewFolioForm({ requestId, sizes, collectors }: { requestId: stri
     >
       <input type="hidden" name="request_id" value={requestId} />
       <Alert state={state} />
-      <FolioFields state={state} sizes={sizes} collectors={collectors} />
+      <FolioFields state={state} sizes={sizes} collectors={collectors} branches={branches} />
       <div className="adm-form__actions">
         <Submit label="Generar folio" pendingLabel="Generando folio…" />
       </div>
@@ -186,12 +197,12 @@ export function NewFolioForm({ requestId, sizes, collectors }: { requestId: stri
   );
 }
 
-export function EditFolioForm({ id, initial, sizes, collectors }: { id: number; initial: FolioValues; sizes: SizeOption[]; collectors: string[] }) {
+export function EditFolioForm({ id, initial, sizes, collectors, branches }: { id: number; initial: FolioValues; sizes: SizeOption[]; collectors: string[]; branches: BranchOption[] }) {
   const [state, action] = useActionState(updateFolioAction.bind(null, id), INITIAL);
   return (
     <form action={action} className="adm-form" noValidate>
       <Alert state={state} />
-      <FolioFields state={state} sizes={sizes} collectors={collectors} initial={initial} />
+      <FolioFields state={state} sizes={sizes} collectors={collectors} branches={branches} initial={initial} />
       <div className="adm-form__actions">
         <Submit label="Guardar corrección" />
       </div>
@@ -217,7 +228,7 @@ export function CancelFolioForm({ id }: { id: number }) {
   );
 }
 
-export function PrintNow({ auto }: { auto: boolean }) {
+export function PrintNow({ auto, label = 'Imprimir etiqueta' }: { auto: boolean; label?: string }) {
   useEffect(() => {
     if (!auto) return;
     const t = window.setTimeout(() => window.print(), 400);
@@ -225,7 +236,7 @@ export function PrintNow({ auto }: { auto: boolean }) {
   }, [auto]);
   return (
     <button type="button" className="btn btn--solid" onClick={() => window.print()}>
-      <Icon name="box" size={16} /> Imprimir etiqueta
+      <Icon name="box" size={16} /> {label}
     </button>
   );
 }
