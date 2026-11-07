@@ -812,6 +812,8 @@ input:disabled {
   @page { size: 50mm 100mm; margin: 0; }
   html, body, .adm, .lbl-page { background: #fff !important; margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
   .no-print, .skip-link { display: none !important; }
-  .lbl { box-shadow: none; page-break-after: avoid; break-inside: avoid; }
-  .lbl-page { display: block; }
+  /* Chrome recorta unas décimas de milímetro al papel: la etiqueta mide un poco menos para no saltar a una 2.ª hoja. */
+  html, body { height: 98mm !important; overflow: hidden !important; }
+  .lbl-page { display: block; height: 98mm; overflow: hidden; }
+  .lbl { box-shadow: none; width: 50mm; height: 98mm; break-inside: avoid; page-break-after: avoid; page-break-inside: avoid; }
 }
