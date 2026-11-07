@@ -48,7 +48,7 @@ export default async function LabelPage({
 
       <article className={`lbl ${cancelled ? 'lbl--cancelled' : ''}`} aria-label={`Etiqueta del folio ${number}`}>
         <header className="lbl__logo">
-          <Image src="/marca-fenix/logo-etiqueta.png" alt="Fénix Point" width={640} height={506} priority unoptimized />
+          <Image src="/marca-fenix/logo-etiqueta.png" alt="Fénix Point" width={720} height={569} priority unoptimized />
         </header>
         <div className="lbl__folio">{number}</div>
         <div className="lbl__barcode" aria-hidden="true" dangerouslySetInnerHTML={{ __html: barcodeSvg(number) }} />
