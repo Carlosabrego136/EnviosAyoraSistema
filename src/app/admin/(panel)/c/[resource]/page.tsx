@@ -8,7 +8,7 @@ import { adminTimezone, LABELS } from '@/lib/admin-utils';
 import { requirePageUser } from '@/lib/auth';
 import { listRows, type Row } from '@/lib/crud';
 import { logger } from '@/lib/logger';
-import { getResource } from '@/lib/resources';
+import { getResource , resourcePermission } from '@/lib/resources';
 
 export async function generateMetadata({ params }: { params: Promise<{ resource: string }> }) {
   const def = getResource((await params).resource);
@@ -29,7 +29,7 @@ export default async function ResourceListPage({
   const def = getResource(resource);
   if (!def) notFound();
 
-  await requirePageUser(def.permission === 'leads' ? 'leads.manage' : 'content.write');
+  await requirePageUser(resourcePermission(def, 'write'));
   const tz = await adminTimezone();
 
   const filters: Record<string, string> = {};

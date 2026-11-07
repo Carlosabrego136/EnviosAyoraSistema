@@ -118,6 +118,10 @@ export const SETTING_DEFS: SettingDef[] = [
   { key: 'facebook_url', label: 'Facebook', group: 'Enlaces y redes', type: 'url', max: 200, default: 'https://www.facebook.com/share/18KJCwsqrK/' },
   { key: 'tiktok_url', label: 'TikTok', group: 'Enlaces y redes', type: 'url', max: 200, help: 'Si lo dejas vacío, el botón de TikTok no se muestra.', default: 'https://www.tiktok.com/@rafaelayorafany' },
   { key: 'tracking_url', label: 'Sitio de rastreo de envíos (opcional)', group: 'Enlaces y redes', type: 'url', max: 200, help: 'Si lo llenas, aparece un botón para consultar tu sistema de rastreo.', default: '' },
+  // ── Folios y etiquetas
+  { key: 'folio_branch', label: 'Sucursal de destino (aparece en la etiqueta)', group: 'Folios y etiquetas', type: 'text', max: 80, help: 'Los folios ya creados conservan la sucursal con la que se generaron.', default: 'Fénix Tijuana Matriz' },
+  { key: 'folio_label_note', label: 'Nota al pie de la etiqueta', group: 'Folios y etiquetas', type: 'text', max: 80, help: 'Opcional. Ejemplo: teléfono o leyenda de frágil.', default: '' },
+  { key: 'folio_wa_message', label: 'Mensaje del comprobante por WhatsApp', group: 'Folios y etiquetas', type: 'textarea', max: 500, help: 'Puedes usar: {folio} {remitente} {destinatario} {tamano} {precio} {sucursal} {estado_pago}', default: 'Hola {remitente}, su paquete quedó registrado con el folio {folio}.\nDestinatario: {destinatario}\nTamaño: {tamano}\nCosto: {precio} ({estado_pago})\nDestino: {sucursal}\nGracias por su preferencia.' },
   // ── Cotizador
   { key: 'quote_note', label: 'Aviso bajo el cotizador', group: 'Cotizador', type: 'textarea', max: 300, default: 'Precio estimado. El costo final se confirma antes de realizar el envío. La paquetería se asigna según disponibilidad del destino.' },
   { key: 'extended_zone_fee', label: 'Cargo por zona extendida (pesos)', group: 'Cotizador', type: 'text', max: 6, help: 'Solo números. Se suma cuando el destino es zona extendida.', default: '285' },

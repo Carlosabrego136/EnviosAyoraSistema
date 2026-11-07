@@ -9,7 +9,7 @@ import { GUIDES, FIELD_HELP } from '@/lib/admin-guides';
 import { getRow } from '@/lib/crud';
 import { formatDateTime } from '@/lib/format';
 import { can } from '@/lib/permissions';
-import { getResource } from '@/lib/resources';
+import { getResource , resourcePermission } from '@/lib/resources';
 import { loadSettings } from '@/lib/site-settings';
 import { whatsappLink } from '@/lib/settings';
 
@@ -24,7 +24,7 @@ export default async function EditRecordPage({ params }: { params: Promise<{ res
   const id = Number(rawId);
   if (!def || !Number.isSafeInteger(id) || id <= 0) notFound();
 
-  const user = await requirePageUser(def.permission === 'leads' ? 'leads.manage' : 'content.write');
+  const user = await requirePageUser(resourcePermission(def, 'write'));
   const row = await getRow(def, id);
   if (!row) notFound();
 
@@ -35,7 +35,7 @@ export default async function EditRecordPage({ params }: { params: Promise<{ res
     values[f.name] = f.type === 'time' && typeof v === 'string' ? v.slice(0, 5) : v;
   }
 
-  const deletePermission = def.permission === 'leads' ? 'leads.manage' : 'content.delete';
+  const deletePermission = resourcePermission(def, 'delete');
   const canDelete = def.canDelete && can(user.role, deletePermission);
 
   let contactHref: string | null = null;

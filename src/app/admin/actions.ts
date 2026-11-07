@@ -17,7 +17,7 @@ import {
 } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import type { Permission } from '@/lib/permissions';
-import { getResource, type ResourceDef } from '@/lib/resources';
+import { getResource, resourcePermission, type ResourceDef } from '@/lib/resources';
 import { importMerchants, importRates } from '@/lib/import';
 import { storeImage } from '@/lib/media';
 import { getRequestContext } from '@/lib/security';
@@ -27,8 +27,7 @@ import { authenticate, changeOwnPassword, createUser, resetUserPassword, updateU
 const PASSWORD_FIELDS = ['password', 'current', 'next', 'confirm'];
 
 function permissionFor(def: ResourceDef, mode: 'write' | 'delete'): Permission {
-  if (def.permission === 'leads') return 'leads.manage';
-  return mode === 'delete' ? 'content.delete' : 'content.write';
+  return resourcePermission(def, mode);
 }
 
 function actorOf(user: { id: number; email: string; name: string; role: string }) {

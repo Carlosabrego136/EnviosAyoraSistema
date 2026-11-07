@@ -29,7 +29,7 @@ const emailSchema = z
   .email('Correo no válido.')
   .max(120, 'Correo demasiado largo.');
 const nameSchema = z.string().trim().min(2, 'Escribe el nombre completo.').max(80, 'Nombre demasiado largo.');
-const roleSchema = z.enum(['admin', 'worker'], { errorMap: () => ({ message: 'Rol no válido.' }) });
+const roleSchema = z.enum(['admin', 'worker', 'recolector'], { errorMap: () => ({ message: 'Rol no válido.' }) });
 
 function zodErrors(err: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

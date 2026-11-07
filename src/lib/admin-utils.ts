@@ -18,6 +18,8 @@ export const LABELS: Record<string, string> = {
   contacto: 'Consulta',
   admin: 'Administrador',
   worker: 'Trabajador',
+  recolector: 'Recolector',
+  cancelado: 'Cancelado',
   activo: 'Activo',
   inactivo: 'Baja',
   renovacion: 'Pendiente de renovación',
@@ -32,6 +34,8 @@ export const FLASH_OK: Record<string, string> = {
   creado: 'Listo, se creó y ya se ve en el sitio (puede tardar hasta un minuto en actualizarse).',
   editado: 'Listo, tus cambios se guardaron y ya se ven en el sitio (puede tardar hasta un minuto).',
   eliminado: 'Listo, se eliminó. Quedó asentado en la bitácora.',
+  cobrado: 'Listo, el folio quedó marcado como cobrado.',
+  pendiente: 'Listo, el folio quedó como pendiente de cobro.',
 };
 
 export const FLASH_ERROR: Record<string, string> = {

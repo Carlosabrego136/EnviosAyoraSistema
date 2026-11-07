@@ -5,7 +5,7 @@ import { adminTimezone } from '@/lib/admin-utils';
 import { requirePageUser } from '@/lib/auth';
 import { todayISO } from '@/lib/format';
 import { GUIDES, FIELD_HELP } from '@/lib/admin-guides';
-import { getResource, writableFields } from '@/lib/resources';
+import { getResource, writableFields , resourcePermission } from '@/lib/resources';
 
 export async function generateMetadata({ params }: { params: Promise<{ resource: string }> }) {
   const def = getResource((await params).resource);
@@ -17,7 +17,7 @@ export default async function NewRecordPage({ params }: { params: Promise<{ reso
   const def = getResource(resource);
   if (!def || !def.canCreate) notFound();
 
-  await requirePageUser(def.permission === 'leads' ? 'leads.manage' : 'content.write');
+  await requirePageUser(resourcePermission(def, 'write'));
   const today = todayISO(await adminTimezone());
 
   const fields = writableFields(def, false).map((f) => ({ ...f, help: f.help ?? FIELD_HELP[f.name] }));

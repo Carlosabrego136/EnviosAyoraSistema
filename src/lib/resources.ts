@@ -1,6 +1,7 @@
 // Definición declarativa de los módulos de contenido editables desde el panel.
 // Todo nombre de tabla/columna usado en SQL sale de esta lista blanca (nunca del usuario).
 import { MERCHANT_CATEGORIES } from './categories';
+import type { Permission } from './permissions';
 import { isSafeHref } from './security';
 
 export type FieldType = 'text' | 'textarea' | 'number' | 'decimal' | 'checkbox' | 'date' | 'time' | 'select' | 'url' | 'image';
@@ -32,7 +33,14 @@ export interface ColumnDef {
   kind?: 'text' | 'bool' | 'date' | 'time' | 'badge' | 'datetime' | 'money' | 'kg';
 }
 
-export type PermissionKey = 'content' | 'leads';
+export type PermissionKey = 'content' | 'leads' | 'folios';
+
+/** Permiso requerido para entrar/editar (`write`) o borrar (`delete`) un módulo. Único punto de decisión. */
+export function resourcePermission(def: Pick<ResourceDef, 'permission'>, mode: 'write' | 'delete'): Permission {
+  if (def.permission === 'leads') return 'leads.manage';
+  if (def.permission === 'folios') return 'folios.manage';
+  return mode === 'delete' ? 'content.delete' : 'content.write';
+}
 
 export interface ResourceDef {
   key: string;
@@ -323,6 +331,40 @@ export const RESOURCES: Record<string, ResourceDef> = {
     validate: (v) => {
       const errors: Record<string, string> = {};
       if (Number(v.weight_to) < Number(v.weight_from)) errors.weight_to = 'El peso final debe ser mayor o igual al inicial.';
+      return errors;
+    },
+  },
+
+  tamanos: {
+    key: 'tamanos',
+    table: 'folio_sizes',
+    permission: 'folios',
+    singular: 'tamaño de folio',
+    plural: 'Tamaños y precios (folios)',
+    description:
+      'Tamaños de paquete para folios y etiquetas, con su rango de peso y precio. Al crear un folio el sistema elige el tamaño según el peso y guarda el precio de ese momento: cambiar un precio aquí NO altera folios ya creados. Para dejar de usar un tamaño desactívalo (no se borra).',
+    orderBy: 'sort_order, min_kg, id',
+    canCreate: true,
+    canDelete: false,
+    titleOf: (r) => s(r.name),
+    columns: [
+      { name: 'name', label: 'Tamaño' },
+      { name: 'min_kg', label: 'Desde (kg)' },
+      { name: 'max_kg', label: 'Hasta (kg)' },
+      { name: 'price', label: 'Precio', kind: 'money' },
+      { name: 'is_active', label: 'Activo', kind: 'bool' },
+    ],
+    fields: [
+      { name: 'name', label: 'Nombre', type: 'text', required: true, max: 40, placeholder: 'Tamaño 1' },
+      { name: 'min_kg', label: 'Peso desde (kg)', type: 'decimal', required: true, min: 0, max: 1000, step: 2, default: 0 },
+      { name: 'max_kg', label: 'Peso hasta (kg)', type: 'decimal', required: true, min: 0.01, max: 1000, step: 2 },
+      { name: 'price', label: 'Precio (MXN)', type: 'decimal', required: true, min: 0, max: 100000 },
+      { name: 'sort_order', label: 'Orden', type: 'number', min: 0, max: 999, default: 0 },
+      { name: 'is_active', label: 'Activo', type: 'checkbox', default: true },
+    ],
+    validate: (v) => {
+      const errors: Record<string, string> = {};
+      if (Number(v.max_kg) < Number(v.min_kg)) errors.max_kg = 'El peso final debe ser mayor o igual al inicial.';
       return errors;
     },
   },

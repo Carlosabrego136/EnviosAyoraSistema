@@ -139,6 +139,8 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
 export async function requireUser(permission?: Permission): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect('/admin/login');
+  // Rol restringido: solo puede usar acciones que pidan expresamente un permiso suyo (nunca las "abiertas").
+  if (!permission && user.role === 'recolector') throw new ForbiddenError();
   if (permission && !can(user.role, permission)) {
     throw new ForbiddenError();
   }
@@ -149,7 +151,9 @@ export async function requireUser(permission?: Permission): Promise<SessionUser>
 export async function requirePageUser(permission?: Permission): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect('/admin/login');
-  if (permission && !can(user.role, permission)) redirect('/admin?aviso=sin-permiso');
+  // El recolector solo usa el módulo de folios: cualquier otra página lo regresa ahí.
+  if (!permission && user.role === 'recolector') redirect('/admin/folios');
+  if (permission && !can(user.role, permission)) redirect(user.role === 'recolector' ? '/admin/folios' : '/admin?aviso=sin-permiso');
   return user;
 }
 

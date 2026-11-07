@@ -137,7 +137,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                   <td data-label="Cuándo" className="nowrap">{formatDateTime(r.created_at, tz)}</td>
                   <td data-label="Quién">
                     <strong>{r.actor_name}</strong>
-                    <small>{r.actor_email} · {ROLE_LABEL[r.actor_role as 'admin' | 'worker'] ?? 'Sistema'}</small>
+                    <small>{r.actor_email} · {ROLE_LABEL[r.actor_role as 'admin' | 'worker' | 'recolector'] ?? 'Sistema'}</small>
                   </td>
                   <td data-label="Qué">
                     <span className="tag tag--plain">{r.action}</span>

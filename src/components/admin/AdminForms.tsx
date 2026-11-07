@@ -139,6 +139,7 @@ export function SettingsForm({ defs, values }: { defs: SettingDef[]; values: Rec
 
 const ROLE_OPTIONS = [
   { value: 'worker', label: 'Trabajador (contenido y solicitudes)' },
+  { value: 'recolector', label: 'Recolector (solo folios y etiquetas)' },
   { value: 'admin', label: 'Administrador (todo)' },
 ];
 
