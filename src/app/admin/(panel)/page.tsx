@@ -106,7 +106,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <ol className="adm-steps">
           <li><span>1</span><div><strong>Carga tus tarifas</strong><p>Para que el cotizador muestre precios. <Link href="/admin/importar">Importar desde Excel</Link> o <Link href="/admin/c/tarifas/nuevo">agregar una por una</Link>.</p></div></li>
           <li><span>2</span><div><strong>Agrega tus comerciantes</strong><p>Con su estatus y categoría. <Link href="/admin/c/comerciantes/nuevo">Agregar comerciante</Link>.</p></div></li>
-          <li><span>3</span><div><strong>Elige el Top 9 del mes</strong><p>Edita un comerciante y ponle su posición del 1 al 9. <Link href="/admin/c/comerciantes">Ver comerciantes</Link>.</p></div></li>
+          <li><span>3</span><div><strong>Elige el Top 10 del mes</strong><p>Edita un comerciante y ponle su posición del 1 al 10. <Link href="/admin/c/comerciantes">Ver comerciantes</Link>.</p></div></li>
           <li><span>4</span><div><strong>Publica tu mensaje con foto</strong><p>Tu espacio personal en el sitio. <Link href="/admin/c/mensajes/nuevo">Publicar mensaje</Link>.</p></div></li>
           <li><span>5</span><div><strong>Mantén el estado al día</strong><p>Avisa si un servicio está limitado o en pausa. <Link href="/admin/c/servicios">Servicios y estado</Link>.</p></div></li>
         </ol>
@@ -119,7 +119,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <Link className="btn btn--ghost btn--sm" href="/admin/c/recolecciones/nuevo">Agregar recolección</Link>
           <Link className="btn btn--ghost btn--sm" href="/admin/c/servicios">Cambiar estado de un servicio</Link>
           <Link className="btn btn--ghost btn--sm" href="/admin/c/mensajes/nuevo">Publicar mensaje personal</Link>
-          <Link className="btn btn--ghost btn--sm" href="/admin/c/comerciantes">Actualizar el Top 9</Link>
+          <Link className="btn btn--ghost btn--sm" href="/admin/c/comerciantes">Actualizar el Top 10</Link>
           <Link className="btn btn--ghost btn--sm" href="/admin/importar">Importar tarifas o comerciantes</Link>
           {can(user.role, 'settings.write') && <Link className="btn btn--ghost btn--sm" href="/admin/ajustes">Ajustes del sitio</Link>}
         </div>

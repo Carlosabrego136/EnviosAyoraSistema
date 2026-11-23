@@ -2534,7 +2534,8 @@ html.js .lx-rise:not(.is-in) .lx-ring__seg {
 .lx-top9__badge { display: inline-flex; gap: 6px; align-items: center; padding: 6px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; background: var(--grad); border-radius: 99px; }
 .lx-top9__head h3 { margin: 12px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 700; color: var(--navy); }
 .lx-top9__head p { margin: 0; color: var(--mid); }
-.lx-top9__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.lx-top9__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 680px) { .lx-top9__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .lx-top9__link { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 14px; color: var(--navy); text-decoration: none; background: #fff; border: 1px solid var(--line); border-radius: 16px; transition: transform 0.2s, box-shadow 0.2s; }
 .lx-top9__link:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(23, 71, 196, 0.22); }
 .is-podium .lx-top9__link { border-color: #9db8ff; background: linear-gradient(135deg, #eef3ff, #fff); }

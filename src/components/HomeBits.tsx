@@ -61,17 +61,17 @@ function TopNineBody({ m, i }: { m: PublicMerchant; i: number }) {
   );
 }
 
-/** Top 9 del mes: tarjetas numeradas, las tres primeras destacadas. */
+/** Top 10 del mes: tarjetas numeradas, las tres primeras destacadas. */
 export function TopNine({ items, label }: { items: PublicMerchant[]; label: string }) {
   return (
     <div className="lx-top9">
       <Motion kind="blur" className="lx-top9__head">
-        <span className="lx-top9__badge"><Icon name="star" size={14} /> Top 9</span>
+        <span className="lx-top9__badge"><Icon name="star" size={14} /> Top 10</span>
         <h3>Los vendedores más activos de {label}</h3>
         <p>Se actualiza cada mes. Compra con comerciantes que ya trabajan con nosotros.</p>
       </Motion>
       {items.length === 0 ? (
-        <p className="lx-empty lx-empty--center">Pronto publicaremos el Top 9 del mes.</p>
+        <p className="lx-empty lx-empty--center">Pronto publicaremos el Top 10 del mes.</p>
       ) : (
         <ol className="lx-top9__grid">
           {items.map((m, i) => (

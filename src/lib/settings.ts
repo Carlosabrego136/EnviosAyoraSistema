@@ -181,8 +181,8 @@ export const SETTING_DEFS: SettingDef[] = [
     help: 'Una fila por línea: Pago en domingo|Salida: lunes. Déjalo vacío para ocultar el calendario.',
     default: SCHEDULE_DEFAULT,
   },
-  // ── Top 9
-  { key: 'top9_label', label: 'Etiqueta del Top 9', group: 'Top 9 de vendedores', type: 'text', max: 40, help: 'Déjalo vacío y el sitio mostrará el mes actual (ej. "Octubre 2026"). Las posiciones se asignan en Comerciantes.', default: '' },
+  // ── Top 10
+  { key: 'top9_label', label: 'Etiqueta del Top 10', group: 'Top 10 de vendedores', type: 'text', max: 40, help: 'Déjalo vacío y el sitio mostrará el mes actual (ej. "Octubre 2026"). Las posiciones se asignan en Comerciantes.', default: '' },
   // ── Sección comunidad
   { key: 'community_eyebrow', label: 'Comunidad · etiqueta', group: 'Sección comunidad', type: 'text', max: 60, default: 'Comunidad Envíos Ayora' },
   { key: 'community_title', label: 'Comunidad · título', group: 'Sección comunidad', type: 'text', max: 120, default: 'Compra, recolectamos y enviamos' },

@@ -30,7 +30,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     { href: '/admin/c/comunicados', label: 'Comunicados', icon: 'megaphone' },
     { href: '/admin/c/servicios', label: 'Servicios y estado', icon: 'box' },
     { href: '/admin/c/tarifas', label: 'Tarifas (cotizador)', icon: 'calc' },
-    { href: '/admin/c/comerciantes', label: 'Comerciantes y Top 9', icon: 'store' },
+    { href: '/admin/c/comerciantes', label: 'Comerciantes y Top 10', icon: 'store' },
     { href: '/admin/c/mensajes', label: 'Espacio personal', icon: 'star' },
     { href: '/admin/c/saldos', label: 'Saldos de La Ruta', icon: 'route' },
     { href: '/admin/importar', label: 'Importar desde Excel', icon: 'link' },

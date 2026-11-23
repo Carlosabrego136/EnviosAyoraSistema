@@ -104,7 +104,7 @@ export default async function HomePage() {
     : DEFAULT_QUOTE_SERVICES;
 
   const activeMerchants = merchants.filter((m) => m.status === 'activo').length;
-  const top = merchants.filter((m) => m.top_rank).sort((a, b) => (a.top_rank ?? 99) - (b.top_rank ?? 99)).slice(0, 9);
+  const top = merchants.filter((m) => m.top_rank).sort((a, b) => (a.top_rank ?? 99) - (b.top_rank ?? 99)).slice(0, 10);
   const topLabel = s.top9_label || monthLabel(c.today);
 
   const steps = pairLines(s.how_steps);
@@ -296,7 +296,7 @@ export default async function HomePage() {
         <div className="lx-fade lx-fade--a" aria-hidden="true" />
       </section>
 
-      {/* ── 05 · Comerciantes y Top 9 ─────────────────────── */}
+      {/* ── 05 · Comerciantes y Top 10 ─────────────────────── */}
       <section id="comerciantes" data-lx-section className="lx-sec lx-sec--b" aria-labelledby="comerciantes-title">
         <div className="lx-wrap">
           <SectionHead tag="directorio" title="Comerciantes" id="comerciantes-title" />

@@ -62,7 +62,7 @@ export interface ResourceDef {
   searchColumns?: string[];
   /** Máximo de filas por listado (por defecto 200). */
   listLimit?: number;
-  /** Error de campo cuando el guardado choca con un índice único (p. ej. posición del Top 9). */
+  /** Error de campo cuando el guardado choca con un índice único (p. ej. posición del Top 10). */
   conflictField?: { name: string; message: string };
 }
 
@@ -400,7 +400,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
     singular: 'comerciante',
     plural: 'Comerciantes',
     description:
-      'Directorio público de comerciantes: nombre, categoría, estatus y enlace a su perfil de Facebook. No se publican teléfonos ni datos personales. Asigna una posición del 1 al 9 para el Top 9 del mes (cámbialas cada mes). Puedes cargar muchos de golpe con "Importar".',
+      'Directorio público de comerciantes: nombre, categoría, estatus y enlace a su perfil de Facebook. No se publican teléfonos ni datos personales. Asigna una posición del 1 al 10 para el Top 10 del mes (cámbialas cada mes). Puedes cargar muchos de golpe con "Importar".',
     orderBy: 'lower(name), id',
     canCreate: true,
     canDelete: true,
@@ -411,7 +411,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
       { name: 'name', label: 'Comerciante' },
       { name: 'category', label: 'Categoría' },
       { name: 'status', label: 'Estatus', kind: 'badge' },
-      { name: 'top_rank', label: 'Top 9' },
+      { name: 'top_rank', label: 'Top 10' },
       { name: 'is_public', label: 'Público', kind: 'bool' },
     ],
     fields: [
@@ -433,12 +433,12 @@ export const RESOURCES: Record<string, ResourceDef> = {
       { name: 'zone', label: 'Zona o ciudad', type: 'text', max: 60, placeholder: 'Tijuana' },
       { name: 'facebook_url', label: 'Enlace a su perfil de Facebook', type: 'url', max: 250, wide: true, placeholder: 'https://www.facebook.com/…', help: 'Es a donde lleva el botón "Visitar perfil". Debe empezar con https://' },
       { name: 'photo_id', label: 'Foto o logo', type: 'image', wide: true, help: 'Opcional. JPG, PNG o WebP.' },
-      { name: 'top_rank', label: 'Posición en el Top 9 del mes', type: 'number', min: 1, max: 9, help: 'Del 1 al 9. Déjalo vacío si no está en el Top 9. Cada posición solo puede tenerla un comerciante.' },
-      { name: 'top_note', label: 'Nota en el Top 9', type: 'text', max: 80, placeholder: 'Ej. Más envíos del mes', wide: true },
+      { name: 'top_rank', label: 'Posición en el Top 10 del mes', type: 'number', min: 1, max: 10, help: 'Del 1 al 10. Déjalo vacío si no está en el Top 10. Cada posición solo puede tenerla un comerciante.' },
+      { name: 'top_note', label: 'Nota en el Top 10', type: 'text', max: 80, placeholder: 'Ej. Más envíos del mes', wide: true },
       { name: 'description', label: 'Notas internas (no se publican)', type: 'textarea', max: 300, wide: true, help: 'Solo las ves tú en el admin: nombre completo, número de registro u otros datos. No aparecen en el sitio.' },
       { name: 'is_public', label: 'Mostrar en el directorio público', type: 'checkbox', default: true },
     ],
-    conflictField: { name: 'top_rank', message: 'Esa posición del Top 9 ya la tiene otro comerciante. Quítasela primero o elige otra.' },
+    conflictField: { name: 'top_rank', message: 'Esa posición del Top 10 ya la tiene otro comerciante. Quítasela primero o elige otra.' },
     validate: (v) => {
       const errors: Record<string, string> = {};
       let fb = s(v.facebook_url).trim();

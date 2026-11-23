@@ -50,9 +50,9 @@ export const GUIDES: Record<string, Guide> = {
   },
   comerciantes: {
     what: 'El directorio público de comerciantes. Solo se muestran su nombre, categoría, estatus y un botón "Visitar perfil" que lleva a su Facebook. No se publican teléfonos.',
-    steps: ['Pulsa "Agregar comerciante" y escribe su nombre (del negocio o de su Facebook), categoría, estatus y el enlace a su perfil.', 'Estatus: Activo, Pendiente de renovación, Baja o Riesgo. La categoría se elige de una lista fija; usa "Variado" cuando no encaje en otra.', 'Para cargar muchos de golpe usa "Importar desde Excel".', 'Para el Top 9, edita al comerciante y elige su posición del 1 al 9. Cámbialos cada mes.', 'Quita la palomita de "Mostrar en el directorio" para ocultarlo sin borrarlo.'],
+    steps: ['Pulsa "Agregar comerciante" y escribe su nombre (del negocio o de su Facebook), categoría, estatus y el enlace a su perfil.', 'Estatus: Activo, Pendiente de renovación, Baja o Riesgo. La categoría se elige de una lista fija; usa "Variado" cuando no encaje en otra.', 'Para cargar muchos de golpe usa "Importar desde Excel".', 'Para el Top 10, edita al comerciante y elige su posición del 1 al 10. Cámbialos cada mes.', 'Quita la palomita de "Mostrar en el directorio" para ocultarlo sin borrarlo.'],
     newLabel: 'Agregar comerciante',
-    where: 'Comerciantes y Top 9',
+    where: 'Comerciantes y Top 10',
   },
   mensajes: {
     what: 'Tu espacio personal: un mensaje con foto para tus clientes (trabajo, eventos, equipo).',
@@ -81,8 +81,8 @@ export const FIELD_HELP: Record<string, string> = {
   name: 'Tal como quieres que se vea en el sitio.',
   category: 'Elige una de la lista. Sirve para filtrar el directorio.',
   status: 'Define cómo se muestra en el sitio.',
-  top_rank: 'Del 1 al 9 para el Top 9 del mes. Déjalo vacío si no entra.',
-  top_note: 'Frase corta que se ve en la tarjeta del Top 9. Ej.: "Más pedidos del mes".',
+  top_rank: 'Del 1 al 10 para el Top 10 del mes. Déjalo vacío si no entra.',
+  top_note: 'Frase corta que se ve en la tarjeta del Top 10. Ej.: "Más pedidos del mes".',
   whatsapp: 'Solo los 10 dígitos, sin espacios. Ej.: 6461031926.',
   facebook_url: 'Enlace completo que empiece con https://',
   photo_id: 'Foto o logo. Se ajusta sola al tamaño correcto.',
