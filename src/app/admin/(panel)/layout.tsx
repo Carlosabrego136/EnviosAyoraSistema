@@ -38,14 +38,11 @@ export default async function PanelLayout({ children }: { children: ReactNode })
     { href: '/admin/c/slides', label: 'Carrusel', icon: 'play' },
     { href: '/admin/c/indicadores', label: 'Indicadores', icon: 'pin' },
   ];
-  if (can(user.role, 'folios.operate')) {
-    items.splice(restricted ? 0 : 1, 0, { href: '/fenix', label: 'Fénix Point · Folios', icon: 'box' });
-  }
+  // Fénix Point (folios y etiquetas) vive aparte, en /fenix, con su propio inicio de sesión.
+  // Aquí solo queda la configuración (tamaños y sucursales) para quien administra.
   if (can(user.role, 'folios.manage')) {
-    items.splice(2, 0, { href: '/fenix/historial', label: 'Historial de folios', icon: 'clock' });
-    items.splice(3, 0, { href: '/fenix/corte', label: 'Corte del día', icon: 'calc' });
-    items.push({ href: '/admin/c/tamanos', label: 'Tamaños y precios (folios)', icon: 'calc' });
-    items.push({ href: '/admin/c/sucursales', label: 'Sucursales (folios)', icon: 'pin' });
+    items.push({ href: '/admin/c/tamanos', label: 'Fénix Point · Tamaños y precios', icon: 'calc' });
+    items.push({ href: '/admin/c/sucursales', label: 'Fénix Point · Sucursales', icon: 'pin' });
   }
   if (can(user.role, 'settings.write')) items.push({ href: '/admin/ajustes', label: 'Ajustes del sitio', icon: 'shield' });
   if (can(user.role, 'users.manage')) items.push({ href: '/admin/usuarios', label: 'Usuarios', icon: 'users' });
